@@ -9,10 +9,20 @@ services:
 #      - .env
     ports:
       - '8000:8000'
-    entrypoint: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8000"
 
   mongo_db:
     container_name: mongo_db_analytics
     image: mongo:7
     ports:
-      - "25017:25017"
+      - ${MONGO_PORT}:${MONGO_PORT}
+    networks:
+      analytics_network:
+        ipv4_address: 192.170.0.18
+
+networks:
+  analytics_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.170.0.0/24
