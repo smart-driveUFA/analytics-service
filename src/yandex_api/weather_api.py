@@ -25,8 +25,7 @@ async def get_weather(lat: float, lon: float, count: int = 1) -> ResponseAPI:
     headers = {"X-Yandex-API-Key": os.getenv("WEATHER_YANDEX")}
     response_json = requests.get(url.weather, headers=headers, timeout=(1, 2)).json()
     await client_mongo.insert_one("yandex", response_json)
-    result = await convert_yandex_to_dict(response_json)
-    return result
+    return await convert_yandex_to_dict(response_json)
 
 
 async def convert_yandex_to_dict(yandex: dict) -> ResponseAPI:
@@ -35,10 +34,10 @@ async def convert_yandex_to_dict(yandex: dict) -> ResponseAPI:
     :param yandex: dict yandex.weather api
     :return: dict ResponseAPI
     """
-    geo_object: dict = yandex['geo_object']
-    fact: dict = yandex['fact']
+    geo_object: dict = yandex["geo_object"]
+    fact: dict = yandex["fact"]
     result: dict = {
-        "city": geo_object['locality']["name"],
+        "city": geo_object["locality"]["name"],
         "temperature": fact["temp"],
         "feels_like": fact["feels_like"],
         "condition": fact["condition"],

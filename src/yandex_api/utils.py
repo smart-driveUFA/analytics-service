@@ -2,8 +2,12 @@ from typing import Optional
 
 
 class Url:
-
-    def __init__(self, lat: Optional[float] = None, lon: Optional[float] = None, count: Optional[int] = 1):
+    def __init__(
+        self,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        count: Optional[int] = 1,
+    ):
         self.weather = (
             f"https://api.weather.yandex.ru/v2/forecast?"
             f"lat={lat}"

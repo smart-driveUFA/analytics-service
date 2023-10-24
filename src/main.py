@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 
 from src.handlers.router import router as main_router_api
+
 load_dotenv()
 
 app = FastAPI(
