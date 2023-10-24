@@ -1,5 +1,7 @@
 from bson import ObjectId
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, GetJsonSchemaHandler
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import core_schema
 
 
 class PyObjectId(ObjectId):
@@ -14,8 +16,10 @@ class PyObjectId(ObjectId):
         return ObjectId(v)
 
     @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type="string")
+    def __get_pydantic_json_schema__(
+            cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler,
+    ) -> JsonSchemaValue:
+        return handler(core_schema.str_schema())
 
 
 class ResponseMongodbObjectId(BaseModel):
@@ -25,3 +29,14 @@ class ResponseMongodbObjectId(BaseModel):
         populate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+
+class ResponseAPI(BaseModel):
+    city: str
+    temperature: int
+    feels_like: int
+    condition: str
+    pressure_mm: int
+    pressure_pa: int
+    humidity: int
+    wind_gust: float

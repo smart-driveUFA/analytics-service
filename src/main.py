@@ -1,14 +1,13 @@
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 
-from src.yandex_api.weather_api import router as yandex_router
-
+from src.handlers.router import router as main_router_api
 load_dotenv()
 
 app = FastAPI(
     docs_url="/",
 )
 
-main_router = APIRouter(prefix="/analytic/v1")
-main_router.include_router(yandex_router)
+main_router = APIRouter(prefix="/smart-drive/v1")
+main_router.include_router(main_router_api)
 app.include_router(main_router)
