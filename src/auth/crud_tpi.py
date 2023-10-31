@@ -5,14 +5,17 @@ from fastapi import status
 
 
 async def request_auth_create_tpi(
-    lat: float, lon: float, direction: str, headers: dict,
+    lat: float,
+    lon: float,
+    direction: str,
+    headers: dict,
 ):
     data = {
         "latitude": lat,
         "longitude": lon,
         "direction": direction,
     }
-    url = os.getenv("AUTH_CREATE_TPI")
+    url = os.getenv("AUTH_CREATE_TPI_URL")
     async with ClientSession() as session, session.post(
         url,
         data=data,

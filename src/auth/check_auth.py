@@ -5,7 +5,7 @@ from fastapi import status
 
 
 async def send_header_to_auth_service(headers: dict):
-    url = os.getenv("AUTH_CHECK_TOKEN")
+    url = os.getenv("AUTH_CHECK_TOKEN_URL")
     async with ClientSession() as session, session.post(
         url,
         headers=headers,

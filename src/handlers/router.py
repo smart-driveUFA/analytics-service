@@ -25,7 +25,10 @@ async def create_tpi(request: Request, tpi_data: CreateTPI):
     headers_valid = await send_header_to_auth_service(headers)
     if headers_valid["status"] == status.HTTP_200_OK:
         tpi_response = await request_auth_create_tpi(
-            tpi_data.lat, tpi_data.lon, tpi_data.direction, headers,
+            tpi_data.lat,
+            tpi_data.lon,
+            tpi_data.direction,
+            headers,
         )
         if tpi_response["status"] == status.HTTP_201_CREATED:
             return await get_weather(
