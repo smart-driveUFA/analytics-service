@@ -4,25 +4,35 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - MONGO_DB=mongodb://mongodb/
+      - AUTH_CHECK_TOKEN_URL=http://172.23.0.5:8000/user/verify_token/
+      - AUTH_CREATE_TPI_URL=http://172.23.0.5:8000/api/v1/tpi/
     container_name: app_analytics
-#    env_file:
-#      - .env
     ports:
-      - '8000:8000'
-    entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+      - '8080:8080'
+    entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload --log-level debug"
+    networks:
+      - analytics_network
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
 
-  mongo_db:
-    container_name: mongo_db_analytics
+  mongodb:
+    container_name: "mongodb"
     image: mongo:7
+    env_file:
+      - .env
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     networks:
-      analytics_network:
-        ipv4_address: 192.170.0.18
+      - analytics_network
 
 networks:
   analytics_network:
+    name: smart_drive
     driver: bridge
-    ipam:
-      config:
-        - subnet: 192.170.0.0/24
+    external: true
