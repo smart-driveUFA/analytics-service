@@ -39,6 +39,9 @@ async def send_data_to_yandex_gpt(instruction_text: str, request_text: str):
         "requestText": request_text,
     }
     response_json = requests.post(
-        Url().gpt, data=data, headers=headers, timeout=(1, 2)
+        Url().gpt,
+        data=data,
+        headers=headers,
+        timeout=(1, 2),
     ).json()
     return await client_mongo.insert_one("yandex_GPT", response_json)
