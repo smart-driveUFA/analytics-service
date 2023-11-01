@@ -10,6 +10,14 @@ async def request_auth_create_tpi(
     direction: str,
     headers: dict,
 ):
+    """
+    Send request to auth_service for authentication headers from request and request for create tpi
+    :param lat: tpi's latitude
+    :param lon: tpi's longitude
+    :param direction: direction of movement
+    :param headers: Authorization Bearer
+    :return: response message auth_service and status code
+    """
     data = {
         "latitude": lat,
         "longitude": lon,
@@ -22,13 +30,19 @@ async def request_auth_create_tpi(
         headers=headers,
     ) as response:
         await session.close()
-    if response.status == status.HTTP_201_CREATED:
-        return {
-            "message": "TPI was created successfully",
-            "status": response.status,
-        }
-    else:
-        return {
-            "message": "something going wrong, try again or write to {email}",
-            "status": response.status,
-        }
+    match response.status:
+        case status.HTTP_201_CREATED:
+            return {
+                "message": "TPI was created successfully",
+                "status": response.status,
+            }
+        case status.HTTP_403_FORBIDDEN:
+            return {
+                "message": "token is invalid",
+                "status": response.status,
+            }
+        case _:
+            return {
+                "message": "something going wrong, try again or write to {email}",
+                "status": response.status,
+            }
