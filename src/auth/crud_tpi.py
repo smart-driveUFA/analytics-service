@@ -23,7 +23,7 @@ async def request_auth_create_tpi(
         "direction": direction,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
     return {
         "message": response.json(),
         "status": response.status_code,
