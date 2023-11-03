@@ -10,7 +10,7 @@ app = FastAPI(
     docs_url="/",
 )
 
-main_router = APIRouter(prefix="/smart-drive/v1")
+main_router = APIRouter(prefix="/api/v1")
 main_router.include_router(main_router_api)
 main_router.include_router(weather_router_api)
 app.include_router(main_router)

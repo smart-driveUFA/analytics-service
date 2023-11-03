@@ -1,7 +1,6 @@
 import os
 
 from aiohttp import ClientSession
-from fastapi import status
 
 
 async def request_auth_create_tpi(
@@ -16,19 +15,10 @@ async def request_auth_create_tpi(
         "direction": direction,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
-    async with ClientSession() as session, session.post(
-        url,
-        data=data,
-        headers=headers,
-    ) as response:
+    async with ClientSession() as session:
+        response = await session.post(url, data=data, headers=headers)
         await session.close()
-    if response.status == status.HTTP_201_CREATED:
-        return {
-            "message": "TPI was created successfully",
-            "status": response.status,
-        }
-    else:
-        return {
-            "message": "something going wrong, try again or write to {email}",
-            "status": response.status,
-        }
+    return {
+        "message": await response.json(),
+        "status": response.status,
+    }
