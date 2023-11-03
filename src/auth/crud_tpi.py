@@ -1,6 +1,6 @@
 import os
 
-from aiohttp import ClientSession
+import requests
 
 
 async def request_auth_create_tpi(
@@ -23,10 +23,8 @@ async def request_auth_create_tpi(
         "direction": direction,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
-    async with ClientSession() as session:
-        response = await session.post(url, data=data, headers=headers)
-        await session.close()
+    response = requests.post(url, data=data, headers=headers)
     return {
-        "message": await response.json(),
-        "status": response.status,
+        "message": response.json(),
+        "status": response.status_code,
     }
