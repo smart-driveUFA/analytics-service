@@ -9,6 +9,14 @@ async def request_auth_create_tpi(
     direction: str,
     headers: dict,
 ):
+    """
+    Send request to auth_service for authentication headers from request and request for create tpi
+    :param lat: tpi's latitude
+    :param lon: tpi's longitude
+    :param direction: direction of movement
+    :param headers: Authorization Bearer
+    :return: response message auth_service and status code
+    """
     data = {
         "latitude": lat,
         "longitude": lon,

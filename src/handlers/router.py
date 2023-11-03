@@ -19,6 +19,12 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_tpi(request: Request, tpi_data: CreateTPI):
+    """
+    Accepts the request to create tpi with params
+    :param request: info about request
+    :param tpi_data: schema of data
+    :return: generated weather dictionary from location data
+    """
     headers = {
         "Authorization": request.headers["Authorization"],
     }
