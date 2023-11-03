@@ -35,7 +35,8 @@ async def get_weather(lat: float, lon: float, count: int = 1) -> ResponseAPI | d
         response = await session.get(url, headers=headers)
         response_json = await response.json()
         await session.close()
-        if response.status == status.HTTP_200_OK:
+    match response.status:
+        case status.HTTP_200_OK:
             if response_json["geo_object"] and response_json["fact"]:
                 await client_mongo["yandex"].insert_one(response_json)
                 return await convert_yandex_to_dict(response_json)
@@ -44,14 +45,14 @@ async def get_weather(lat: float, lon: float, count: int = 1) -> ResponseAPI | d
                     "message": "response returned wrong data, please check request",
                     "response": response_json,
                 }
-        elif response.status == status.HTTP_404_NOT_FOUND:
+        case status.HTTP_404_NOT_FOUND:
             return {
                 "message": "The data entered is incorrect, please check the data and try again.",
                 "status": response.status,
             }
-        elif response.status == status.HTTP_403_FORBIDDEN:
+        case status.HTTP_403_FORBIDDEN:
             return {"message": "request not allows", "status": response.status}
-        else:
+        case _:
             return {
                 "message": "Something going wrong",
                 "status": response.status,

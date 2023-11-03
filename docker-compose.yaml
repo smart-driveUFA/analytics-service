@@ -7,9 +7,9 @@ services:
     env_file:
       - .env
     environment:
-      - MONGO_DB=mongodb://mongodb/
-      - AUTH_CHECK_TOKEN_URL=http://172.23.0.5:8000/user/verify_token/
-      - AUTH_CREATE_TPI_URL=http://172.23.0.5:8000/api/v1/tpi/
+      - MONGO_DB=${MONGO_DB}
+      - AUTH_CHECK_TOKEN_URL=${AUTH_CHECK_TOKEN_URL}
+      - AUTH_CREATE_TPI_URL=${AUTH_CREATE_TPI_URL}
     container_name: app_analytics
     ports:
       - '8080:8080'
