@@ -3,13 +3,14 @@ from http import HTTPStatus
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
+from dirty_equals import IsFloat, IsInt, IsStr
 from httpx import AsyncClient
 from starlette import status
 
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
 from src.main import app
-from tests.fixture import create_tpi_fix, data, headers, headers_bad
+from tests.fixture import create_tpi_fix, data, headers, headers_bad, response_api
 
 client = AsyncClient(app=app)
 
@@ -91,3 +92,86 @@ async def test_bad_create_tpi():
         assert result.status_code == 403
         assert result.json() == mock_response_bad["message"]
         assert mock_non_create_tpi.call_count == 1
+
+
+async def test_get_road_data():
+    auth_service_response = {
+        "status": 200,
+        "message": "Token verification successful",
+    }
+    mock_send_header_to_auth_service = mock.AsyncMock(
+        return_value=auth_service_response
+    )
+    weather_response = response_api
+    mock_get_weather = mock.AsyncMock(return_value=weather_response)
+    with mock.patch(
+        "src.handlers.router.send_header_to_auth_service",
+        mock_send_header_to_auth_service,
+    ), mock.patch("src.handlers.router.get_weather", mock_get_weather):
+        query_params = {
+            "lat": data["lat"],
+            "lon": data["lon"],
+        }
+        result = await client.get(
+            url=os.getenv("TEST_URL_TRAFFIC"),
+            params=query_params,
+            headers=headers,
+        )
+        assert result.status_code == 200
+        assert result.json() == response_api
+        assert result.json()["city"] == "Москва"
+        assert result.json()["city"] == IsStr
+        assert result.json()["temperature"] == IsInt
+        assert result.json()["feels_like"] == IsInt
+        assert result.json()["condition"] == IsStr
+        assert result.json()["pressure_mm"] == IsInt
+        assert result.json()["pressure_pa"] == IsInt
+        assert result.json()["humidity"] == IsInt
+        assert result.json()["wind_gust"] == IsFloat
+
+
+async def test_get_road_data_failure():
+    auth_service_response_failure = {
+        "status": 401,
+        "message": "Token is invalid",
+    }
+    mock_token_verification = mock.AsyncMock(return_value=auth_service_response_failure)
+    with mock.patch(
+        "src.handlers.router.send_header_to_auth_service", mock_token_verification
+    ):
+        query_params = {
+            "lat": data["lat"],
+            "lon": data["lon"],
+        }
+        result = await client.get(
+            url=os.getenv("TEST_URL_TRAFFIC"),
+            params=query_params,
+            headers=headers,
+        )
+        assert result.status_code == 401
+        assert result.json() == "Token is invalid"
+
+
+async def test_get_road_data_without_headers():
+    query_params = {
+        "lat": data["lat"],
+        "lon": data["lon"],
+    }
+    result = await client.get(
+        url=os.getenv("TEST_URL_TRAFFIC"),
+        params=query_params,
+    )
+    assert result.status_code == 401
+    assert result.json()["message"] == "provide an access token"
+
+
+async def test_get_road_data_without_query_params():
+    query_params = {
+        "lat": None,
+        "lon": None,
+    }
+    result = await client.get(
+        url=os.getenv("TEST_URL_TRAFFIC"),
+        params=query_params,
+    )
+    assert result.status_code == 422
