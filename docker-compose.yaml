@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   app:
+    container_name: app-analytics
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,12 +11,12 @@ services:
       - MONGO_DB=${MONGO_DB}
       - AUTH_CHECK_TOKEN_URL=${AUTH_CHECK_TOKEN_URL}
       - AUTH_CREATE_TPI_URL=${AUTH_CREATE_TPI_URL}
-    container_name: app_analytics
+
     ports:
       - '8080:8080'
     entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload --log-level debug"
     networks:
-      - analytics_network
+      - common-network
     depends_on:
       - mongodb
     links:
@@ -29,10 +30,15 @@ services:
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     networks:
-      - analytics_network
+      - common-network
+
+#networks:
+#  analytics_network:
+#    name: smart_drive
+#    driver: bridge
+#    external: true
 
 networks:
-  analytics_network:
-    name: smart_drive
+  common-network:
     driver: bridge
     external: true
