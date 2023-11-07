@@ -13,11 +13,6 @@ router = APIRouter(
 )
 
 
-@router.get(
-    "/get-weather",
-    response_model=ResponseAPI,
-    status_code=status.HTTP_201_CREATED,
-)
 async def get_weather(lat: float, lon: float, count: int = 1) -> ResponseAPI | dict:
     """
     Make request to yandex.weather API

@@ -265,5 +265,4 @@ headers_bad = {
     "_Pw9fLsSwcRx4Ie3fe0L7EHC7Vz9u6MkXlpBSu7o_rI",
 }
 
-
 create_tpi_fix = {"lat": 55.0, "lon": 37.0, "direction": "Вологда-Москва", "count": 1}
