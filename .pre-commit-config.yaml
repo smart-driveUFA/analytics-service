@@ -33,7 +33,7 @@ repos:
     hooks:
     -   id: flake8
         exclude: "__init__.py"
-        args: ["--ignore=E501,F821", "--max-line-length=120"]
+        args: ["--ignore=E501,F821,W503,W504", "--max-line-length=120"]
 
 # The Uncompromising Code Formatter
 -   repo: https://github.com/psf/black
@@ -42,10 +42,11 @@ repos:
     - id: black
       language_version: python3.10
 
-# An extremely fast Python linter and code formatter, written in Rust
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  # Ruff version.
-  rev: v0.1.4
-  hooks:
-    - id: ruff-format
-      args: [--fix]
+## An extremely fast Python linter and code formatter, written in Rust
+#- repo: https://github.com/astral-sh/ruff-pre-commit
+#  # Ruff version.
+#  rev: v0.1.4
+#  hooks:
+#    - id: ruff-format
+#    - id: ruff
+#      args: [--fix]
