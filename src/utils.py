@@ -17,4 +17,4 @@ class Url:
             f"&hours=False"
             f"&extra=False"
         )
-        self.gpt = "https://llm.api.cloud.yandex.net/llm/v1alpha/instruct"
+        self.open_ai = "https://api.openai.com/v1/chat/completions"

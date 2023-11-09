@@ -1,11 +1,11 @@
 import os
+from typing import Union
 
 from aiohttp import ClientSession
 from fastapi import APIRouter, status
 
 from src.mongodb.mongo import client_mongo
-from src.yandex_api.schemas import ResponseAPI
-from src.yandex_api.utils import Url
+from src.utils import Url
 
 router = APIRouter(
     prefix="/yandex_api",
@@ -13,48 +13,33 @@ router = APIRouter(
 )
 
 
-async def get_weather(lat: float, lon: float, count: int = 1) -> ResponseAPI | dict:
+async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, None]:
     """
     Make request to yandex.weather API
     :param lat: latitude of object
     :param lon: longitude of object
     :param count: quantity of days in request
-    :return: dict ResponseAPI or error message
+    :return: yandex weather or None
     """
     url = Url(lat, lon, count).weather
     headers = {
         "X-Yandex-API-Key": str(os.getenv("WEATHER_YANDEX")),
-        "content-type": "application/json",
     }
     async with ClientSession() as session:
         response = await session.get(url, headers=headers)
         response_json = await response.json()
         await session.close()
-    match response.status:
-        case status.HTTP_200_OK:
-            if response_json["geo_object"] and response_json["fact"]:
-                await client_mongo["yandex"].insert_one(response_json)
-                return await convert_yandex_to_dict(response_json)
-            else:
-                return {
-                    "message": "response returned wrong data, please check request",
-                    "response": response_json,
-                }
-        case status.HTTP_404_NOT_FOUND:
-            return {
-                "message": "The data entered is incorrect, please check the data and try again.",
-                "status": response.status,
-            }
-        case status.HTTP_403_FORBIDDEN:
-            return {"message": "request not allows", "status": response.status}
-        case _:
-            return {
-                "message": "Something going wrong",
-                "status": response.status,
-            }
+    if (
+        response.status == status.HTTP_200_OK
+        and response_json["geo_object"]
+        and response_json["fact"]
+    ):
+        await client_mongo["yandex"].insert_one(response_json)
+        return response_json
+    return None
 
 
-async def convert_yandex_to_dict(yandex: dict) -> ResponseAPI:
+async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
     """
     Make ResponseAPI data from yandex.weather api
     :param yandex: dict yandex.weather api
@@ -72,5 +57,15 @@ async def convert_yandex_to_dict(yandex: dict) -> ResponseAPI:
         "humidity": fact["humidity"],
         "wind_gust": fact["wind_gust"],
     }
-    await client_mongo["responses"].insert_one(result)
-    return ResponseAPI.model_validate(result)
+    await client_mongo["response_weather"].insert_one(result)
+    return result
+
+
+async def processed_data_weather(
+    lat: float, lon: float, count: int = 1
+) -> Union[dict, None]:
+    weather = await _get_weather(lat, lon, count)
+    if weather:
+        return await _convert_yandex_weather_to_dict(weather)
+    else:
+        return None
