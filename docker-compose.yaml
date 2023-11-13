@@ -1,28 +1,39 @@
 version: '3.8'
 services:
   app:
+    container_name: app-analytics
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: app_analytics
-#    env_file:
-#      - .env
-    ports:
-      - '8000:8000'
-    entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_DB=${MONGO_DB}
+      - AUTH_CHECK_TOKEN_URL=${AUTH_CHECK_TOKEN_URL}
+      - AUTH_CREATE_TPI_URL=${AUTH_CREATE_TPI_URL}
 
-  mongo_db:
-    container_name: mongo_db_analytics
+    ports:
+      - '8080:8080'
+    entrypoint: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload --log-level debug"
+    networks:
+      - common-network
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
+
+  mongodb:
+    container_name: "mongodb"
     image: mongo:7
+    env_file:
+      - .env
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     networks:
-      analytics_network:
-        ipv4_address: 192.170.0.18
+      - common-network
+
 
 networks:
-  analytics_network:
+  common-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 192.170.0.0/24
+    external: true
