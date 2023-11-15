@@ -1,3 +1,6 @@
+from starlette import status
+from starlette.responses import JSONResponse
+
 data = {
     "lat": 55.75396,
     "lon": 37.620393,
@@ -266,3 +269,70 @@ headers_bad = {
 }
 
 create_tpi_fix = {"lat": 55.0, "lon": 37.0, "direction": "Вологда-Москва", "count": 1}
+
+mock_response = {
+    "message": {
+        "latitude": 55.0,
+        "longitude": 37.0,
+        "direction": "Вологда-Москва",
+    },
+    "status": status.HTTP_201_CREATED,
+}
+
+mock_response_bad = {
+    "message": {
+        "detail": "Недействительный токен доступа",
+    },
+    "status": status.HTTP_403_FORBIDDEN,
+}
+
+chat_gpt_response = {
+    "message": "Исходя из предоставленных данных, можно сделать следующие выводы:\n\n1."
+    " Температура в Жуковском районе составляет 8 градусов,"
+    " что является достаточно низкой температурой для возникновения гололеда.\n\n2."
+    " Ощущаемая температура (feels_like) составляет 5 градусов,"
+    " что также указывает на возможность образования гололеда.\n\n3."
+    ' Условия погоды описываются как "пасмурно" (overcast),'
+    " что может способствовать образованию гололеда.\n\n4."
+    " Давление составляет 742 мм ртутного столба (989 Па), что не является фактором,"
+    " влияющим на возникновение гололеда.\n\n5."
+    " Влажность составляет 82%, что может способствовать образованию гололеда.\n\n6."
+    " Скорость порывов ветра составляет 7.2 м/с, что также может способствовать образованию гололеда."
+    "\n\nИсходя из этих данных, можно сделать вывод"
+    " о возможности образования гололеда в Жуковском районе."
+    " Однако, наличие тумана не указано в предоставленных данных,"
+    " поэтому нельзя сделать вывод о его наличии.",
+}
+
+auth_service_response = {
+    "status": 200,
+}
+
+message_for_chatgpt = (
+    "Исходя из приведенных данных проведи анализ погодных условий и "
+    "сделай вывод о возможности гололеда и других погодных ситуаций "
+    "city: Москва"
+    " temperature: 0"
+    " feels_like: -4"
+    " condition: cloudy"
+    " pressure_mm: 750"
+    " pressure_pa: 999"
+    " humidity: 52"
+    " wind_gust: 3.9 "
+)
+
+result_chatgpt = chat_gpt_response["message"]
+result_chatgpt_status_code_200 = JSONResponse(
+    status_code=status.HTTP_200_OK,
+    content=chat_gpt_response["message"],
+)
+
+result_chatgpt_bad = JSONResponse(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    content="error",
+)
+
+result_chatgpt_status_code_400 = JSONResponse(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    content="error",
+)
