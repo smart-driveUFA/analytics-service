@@ -67,7 +67,7 @@ async def get_road_data(request: Request, lat: float, lon: float):
         match token_verification["status"]:
             case status.HTTP_200_OK:  # здесь бизнес логика по сбору данных
                 weather = await processed_data_weather(lat, lon)
-                message = await response_openai(weather)
+                message = await response_openai(weather, lat, lon)
                 if message:
                     return message
                 return weather

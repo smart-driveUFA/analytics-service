@@ -23,7 +23,7 @@ services:
       - mongodb
 
   mongodb:
-    container_name: "mongodb"
+    container_name: mongodb
     image: mongo:7
     env_file:
       - .env
@@ -32,6 +32,15 @@ services:
     networks:
       - common-network
 
+  redis:
+    container_name: redis
+    image: redis:7
+    env_file:
+      - .env
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    networks:
+      - common-network
 
 networks:
   common-network:
