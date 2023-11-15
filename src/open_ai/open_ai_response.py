@@ -5,7 +5,8 @@ import requests
 from fastapi import APIRouter
 from starlette import status
 
-from src.mongodb.mongo import client_mongo
+from src.database.mongo import client_mongo
+from src.database.redis import redis_client
 from src.utils import Url
 
 router = APIRouter(
@@ -58,8 +59,14 @@ async def _convert_data_to_message_openai(weather: dict) -> str:
     return f"{task} {information_of_road}"
 
 
-async def response_openai(weather: dict) -> Union[str, None]:
+async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, None]:
     message = await _convert_data_to_message_openai(weather)
-    if isinstance(message, str):
-        return await _send_request_openai_chat_completion(message)
+    name_cached_data = f"openai response {lat}-{lon}."
+    cached_data = await redis_client.get(name=name_cached_data)
+    if cached_data:
+        return cached_data
+    response_chatgpt = await _send_request_openai_chat_completion(message)
+    if response_chatgpt:
+        await redis_client.set(name=name_cached_data, value=response_chatgpt["message"])
+        return response_chatgpt
     return None
