@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 
+from src.api_2gis.too_gis import router as router_too
 from src.handlers.router import router as main_router_api
 from src.yandex_api.weather_api import router as weather_router_api
 
@@ -13,4 +14,5 @@ app = FastAPI(
 main_router = APIRouter(prefix="/api/v1")
 main_router.include_router(main_router_api)
 main_router.include_router(weather_router_api)
+main_router.include_router(router_too)
 app.include_router(main_router)

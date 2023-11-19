@@ -47,5 +47,4 @@ repos:
   # Ruff version.
   rev: v0.1.3
   hooks:
-    - id: ruff-format
     - id: ruff
