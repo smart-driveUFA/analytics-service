@@ -29,13 +29,9 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
     }
     async with ClientSession() as session:
         response = await session.get(url, headers=headers)
-        response_json = await response.json()
         await session.close()
-    if (
-        response.status == status.HTTP_200_OK
-        and response_json["geo_object"]
-        and response_json["fact"]
-    ):
+    if response.status == status.HTTP_200_OK:
+        response_json = await response.json()
         value_for_mongodb = copy.deepcopy(response_json)
         await client_mongo["yandex"].insert_one(value_for_mongodb)
         return response_json
@@ -60,22 +56,27 @@ async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
         "humidity": fact["humidity"],
         "wind_gust": fact["wind_gust"],
     }
-    value_for_mongodb = copy.deepcopy(result)
-    await client_mongo["response_weather"].insert_one(value_for_mongodb)
+    await client_mongo["response_weather"].insert_one(result)
     return result
 
 
 async def processed_data_weather(
     lat: float, lon: float, count: int = 1
 ) -> Union[dict, None]:
-    _name = f"yandex weather{lat}-{lon}"
-    _time_to_store = 120
+    """
+    if not cache call _get_weather and save to redis
+    :param lat:latitude of location
+    :param lon: longitude of location
+    :param count: quantity of days to request
+    :return: dict _convert_yandex_weather_to_dict
+    """
+    _name = f"yandex weather {lat}-{lon}"
     cached_data = await redis_client.get(name=_name)
     if cached_data:
         return await _convert_yandex_weather_to_dict(cached_data)
     weather = await _get_weather(lat, lon, count)
     if weather:
-        await redis_client.set(name=_name, value=weather, lifetime=_time_to_store)
+        await redis_client.set(name=_name, value=weather)
         return await _convert_yandex_weather_to_dict(weather)
     else:
         return None

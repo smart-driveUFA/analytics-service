@@ -4,12 +4,12 @@ from fastapi import APIRouter, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from src.analysis_road.collect_data import summing_result_road
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
-from src.handlers.schemas import CreateTPI
-from src.open_ai.open_ai_response import response_openai
+from src.database.mongo import client_mongo
+from src.handlers.schemas import CoordinatesBetweenTPI, CreateTPI, SummingData
 from src.yandex_api.schemas import ResponseAPI
-from src.yandex_api.weather_api import processed_data_weather
 
 router = APIRouter(
     prefix="/routers",
@@ -48,29 +48,25 @@ async def create_tpi(request: Request, tpi_data: CreateTPI):
         )
 
 
-@router.get(
+@router.post(
     "/traffic-status",
-    response_model=Union[str, ResponseAPI, dict, None],
+    response_model=Union[SummingData, dict, None],
 )
-async def get_road_data(request: Request, lat: float, lon: float):
+async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI):
     """
-    Check headers using auth service and make response data
-    :param request: info about request
-    :param lat: tpi's latitude
-    :param lon: tpi's longitude
-    :return: str response of chatgpt or dict if chatgpt response status code != 200
-    or error message of authenticate is failure
+    check authentication and process road data
+    :param request: info about request for check authentication
+    :param route_coor: coordinate parameters start and stop location
+    :return: SummingData weather, recommended message and traffic jams status or unauthorized status
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
         token_verification = await send_header_to_auth_service(token)
         match token_verification["status"]:
-            case status.HTTP_200_OK:  # здесь бизнес логика по сбору данных
-                weather = await processed_data_weather(lat, lon)
-                message = await response_openai(weather, lat, lon)
-                if message:
-                    return message
-                return weather
+            case status.HTTP_200_OK:
+                return await summing_result_road(
+                    route_coor
+                )  # здесь бизнес логика по сбору данных
             case _:
                 return JSONResponse(
                     status_code=token_verification["status"],
@@ -83,3 +79,9 @@ async def get_road_data(request: Request, lat: float, lon: float):
                 "message": "provide an access token",
             },
         )
+
+
+@router.delete("/delete-collection")
+async def delete_collection_mongodb(name: str):
+    await client_mongo[name].delete_many({})
+    return {"message": f"successfully delete {name} collection"}
