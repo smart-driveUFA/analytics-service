@@ -1,12 +1,9 @@
 from starlette import status
 from starlette.responses import JSONResponse
 
-data = {
-    "lat": 55.75396,
-    "lon": 37.620393,
-    "count": 1,
-}
+start_data = {"lat": 54.4334, "lon": 55.5651}
 
+stop_data = {"lat": 54.7431, "lon": 55.9678}
 response_yandex_example = {
     "now": 1698234863,
     "now_dt": "2023-10-25T11:54:23.805001Z",
@@ -270,14 +267,6 @@ headers_bad = {
 
 create_tpi_fix = {"lat": 55.0, "lon": 37.0, "direction": "Вологда-Москва", "count": 1}
 
-mock_response = {
-    "message": {
-        "latitude": 55.0,
-        "longitude": 37.0,
-        "direction": "Вологда-Москва",
-    },
-    "status": status.HTTP_201_CREATED,
-}
 
 mock_response_bad = {
     "message": {
@@ -304,9 +293,12 @@ chat_gpt_response = {
     " поэтому нельзя сделать вывод о его наличии.",
 }
 
-auth_service_response = {
-    "status": 200,
-}
+auth_service_response = JSONResponse(
+    status_code=status.HTTP_200_OK,
+    content="access is allowed",
+)
+
+auth_service_response_failure = False
 
 message_for_chatgpt = (
     "Исходя из приведенных данных проведи анализ погодных условий и "
@@ -336,3 +328,5 @@ result_chatgpt_status_code_400 = JSONResponse(
     status_code=status.HTTP_400_BAD_REQUEST,
     content="error",
 )
+
+traffic_jams_good = {"duration": 5450, "length": 5400, "status_of_jams": "normal"}

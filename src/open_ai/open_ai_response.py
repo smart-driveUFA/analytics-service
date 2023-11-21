@@ -2,20 +2,13 @@ import os
 from typing import Union
 
 import requests
-from fastapi import APIRouter
 from starlette import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
 from src.utils import Url
 
-router = APIRouter(
-    prefix="/routers",
-    tags=["router_api"],
-)
 
-
-@router.post("/chatgpt")
 async def _send_request_openai_chat_completion(message: str) -> Union[dict, None]:
     """
     sends a request to the gpt chat and returns the analyzed data
@@ -29,7 +22,7 @@ async def _send_request_openai_chat_completion(message: str) -> Union[dict, None
         "Authorization": f"Bearer {open_api_key}",
     }
     data = {
-        "model": "gpt-3.5-turbo",
+        "model": os.getenv("MODEL_OPENAI"),
         "messages": [{"role": "user", "content": message}],
         "temperature": 0.1,
     }
@@ -76,6 +69,6 @@ async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, 
     message = await _convert_data_to_message_openai(weather)
     response_chatgpt = await _send_request_openai_chat_completion(message)
     if response_chatgpt:
-        await redis_client.set(name=name_cached_data, value=response_chatgpt["message"])
+        await redis_client.set(name=name_cached_data, value=response_chatgpt)
         return response_chatgpt
     return None

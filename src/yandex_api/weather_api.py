@@ -2,17 +2,12 @@ import copy
 import os
 from typing import Union
 
-from aiohttp import ClientSession
-from fastapi import APIRouter, status
+import requests
+from fastapi import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
 from src.utils import Url
-
-router = APIRouter(
-    prefix="/yandex_api",
-    tags=["yandex_api"],
-)
 
 
 async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, None]:
@@ -27,11 +22,9 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
     headers = {
         "X-Yandex-API-Key": str(os.getenv("WEATHER_YANDEX")),
     }
-    async with ClientSession() as session:
-        response = await session.get(url, headers=headers)
-        await session.close()
-    if response.status == status.HTTP_200_OK:
-        response_json = await response.json()
+    response = requests.get(url=url, headers=headers, timeout=(1, 1))
+    if response.status_code == status.HTTP_200_OK:
+        response_json = response.json()
         value_for_mongodb = copy.deepcopy(response_json)
         await client_mongo["yandex"].insert_one(value_for_mongodb)
         return response_json
