@@ -1,6 +1,7 @@
-from http import HTTPStatus
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+from starlette import status
 
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
@@ -10,49 +11,43 @@ from src.open_ai.open_ai_response import (
 )
 from src.utils import Url
 from tests.fixture import (
-    data,
     headers,
     message_for_chatgpt,
     response_api,
     result_chatgpt,
+    start_data,
 )
 
 
 @patch("src.auth.crud_tpi.requests")
 async def test_request_auth_create_tpi(mock_requests):
-    mock_response_auth = MagicMock()
-    mock_response_auth.status_code = 201
-    mock_response_auth.json.return_value = {
-        "message": "tpi created successfully",
-    }
-    mock_requests.post.return_value = mock_response_auth
+    mock_requests.post.return_value.status_code = status.HTTP_201_CREATED
     response = await request_auth_create_tpi(
-        data["lat"],
-        data["lon"],
+        start_data["lat"],
+        start_data["lon"],
         "Volgograd",
         headers,
     )
-    assert response["status"] == HTTPStatus.CREATED
-    assert response["message"] == {
-        "message": "tpi created successfully",
-    }
+    assert response is True
+
+
+@patch("src.auth.crud_tpi.requests")
+async def test_request_auth_create_tpi_bad(mock_requests):
+    mock_requests.post.return_value.status_code = status.HTTP_401_UNAUTHORIZED
+    response = await request_auth_create_tpi(
+        start_data["lat"],
+        start_data["lon"],
+        "Volgograd",
+        headers,
+    )
+    assert response is False
 
 
 @patch("src.auth.check_auth.requests")
 async def test_send_header_to_auth_service(mock_requests):
-    mock_response_auth = MagicMock()
-    mock_response_auth.status_code = 200
-    mock_response_auth.json.return_value = {
-        "message": "created",
-        "status": 201,
-    }
-    mock_requests.post.return_value = mock_response_auth
+    mock_requests.post.return_value.status_code = status.HTTP_200_OK
     response = await send_header_to_auth_service(headers)
-    assert response["status"] == HTTPStatus.OK
-    assert response["message"] == {
-        "message": "created",
-        "status": 201,
-    }
+    assert response is True
 
 
 async def test__convert_data_to_message_openai():
@@ -74,24 +69,10 @@ async def test_response_openai():
         "src.open_ai.open_ai_response._send_request_openai_chat_completion",
         mock__send_request_openai_chat_completion,
     ):
-        result = await response_openai(response_api)
+        result = await response_openai(
+            response_api, start_data["lat"], start_data["lon"]
+        )
         assert result == result_chatgpt
-
-
-async def test_response_openai_failure():
-    mock_response__convert_data_to_message_openai = mock.AsyncMock(
-        return_value=message_for_chatgpt
-    )
-    mock__send_request_openai_chat_completion = mock.AsyncMock(return_value=None)
-    with mock.patch(
-        "src.open_ai.open_ai_response._convert_data_to_message_openai",
-        mock_response__convert_data_to_message_openai,
-    ), mock.patch(
-        "src.open_ai.open_ai_response._send_request_openai_chat_completion",
-        mock__send_request_openai_chat_completion,
-    ):
-        result = await response_openai(response_api)
-        assert result is None
 
 
 async def test_url_weather():

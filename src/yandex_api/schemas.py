@@ -33,7 +33,7 @@ class ResponseMongodbObjectId(BaseModel):
         json_encoders = {ObjectId: str}
 
 
-class ResponseAPI(BaseModel):
+class ResponseAPI(ResponseMongodbObjectId):
     city: str
     temperature: int
     feels_like: int

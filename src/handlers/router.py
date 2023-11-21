@@ -9,7 +9,6 @@ from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
 from src.database.mongo import client_mongo
 from src.handlers.schemas import CoordinatesBetweenTPI, CreateTPI, SummingData
-from src.yandex_api.schemas import ResponseAPI
 
 router = APIRouter(
     prefix="/routers",
@@ -17,11 +16,8 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/create-tpi",
-    response_model=ResponseAPI | dict,
-)
-async def create_tpi(request: Request, tpi_data: CreateTPI):
+@router.post("/create-tpi", response_class=JSONResponse)
+async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
     """
     Accepts the request to create tpi with params
     :param request: info about request
@@ -35,10 +31,20 @@ async def create_tpi(request: Request, tpi_data: CreateTPI):
             tpi_data.direction,
             request.headers["Authorization"],
         )
-        return JSONResponse(
-            status_code=tpi_response["status"],
-            content=tpi_response["message"],
-        )
+        if tpi_response:
+            return JSONResponse(
+                status_code=status.HTTP_201_CREATED,
+                content={
+                    "message": "successfully added",
+                },
+            )
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "message": "token is invalid",
+                },
+            )
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,16 +68,16 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
         token_verification = await send_header_to_auth_service(token)
-        match token_verification["status"]:
-            case status.HTTP_200_OK:
-                return await summing_result_road(
-                    route_coor
-                )  # здесь бизнес логика по сбору данных
-            case _:
-                return JSONResponse(
-                    status_code=token_verification["status"],
-                    content=token_verification["message"],
-                )
+        if token_verification:
+            return await summing_result_road(
+                route_coor
+            )  # здесь бизнес логика по сбору данных
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "message": "token is invalid",
+            },
+        )
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,

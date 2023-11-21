@@ -8,14 +8,14 @@ async def request_auth_create_tpi(
     lon: float,
     direction: str,
     token: str,
-):
+) -> bool:
     """
     Send request to auth_service for authentication headers from request and request for create tpi
     :param lat: tpi's latitude
     :param lon: tpi's longitude
     :param direction: direction of movement
     :param token: Authorization Bearer
-    :return: response message auth_service and status code
+    :return: create verification status
     """
     data = {
         "latitude": lat,
@@ -27,7 +27,4 @@ async def request_auth_create_tpi(
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
     response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
-    return {
-        "message": response.json(),
-        "status": response.status_code,
-    }
+    return response.status_code == 201

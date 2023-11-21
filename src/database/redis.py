@@ -10,7 +10,7 @@ from aioredis.connection import EncodableT
 class Redis:
     def __init__(self):
         self.redis_client = aioredis.Redis(
-            host=os.getenv("REDIS_HOST"),
+            host=os.getenv("REDIS_HOST", "localhost"),
             db=0,
             decode_responses=True,
         )

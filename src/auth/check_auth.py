@@ -3,18 +3,15 @@ import os
 import requests
 
 
-async def send_header_to_auth_service(token: str) -> dict:
+async def send_header_to_auth_service(token: str) -> bool:
     """
     Send request to auth_service for authentication headers from request
     :param token: Authorization Bearer
-    :return: response message auth_service and status code
+    :return: token verification status
     """
     headers = {
         "Authorization": token,
     }
     url = os.getenv("AUTH_CHECK_TOKEN_URL")
     response = requests.post(url, headers=headers, timeout=(1, 1))
-    return {
-        "message": response.json(),
-        "status": response.status_code,
-    }
+    return response.status_code == 200

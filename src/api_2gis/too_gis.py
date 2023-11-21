@@ -1,3 +1,5 @@
+from typing import Dict
+
 import requests
 from fastapi import APIRouter
 from starlette import status
@@ -53,21 +55,27 @@ async def _send_request_2gis(coordinate_of_route: CoordinatesBetweenTPI):
             return None
 
 
-async def _count_time_route(params_router: dict):
+async def _count_time_route(params_router: Dict[str, int]):
     """
     count travels time using length and duration
     :param params_router: dict with key duration and length
     :return: str status of traffic jams
     """
     current_speed = 80
-    time_in_minute = params_router["duration"] / 60
-    average_speed = params_router["length"] / time_in_minute
-    if average_speed >= current_speed:
-        return "normal"
-    elif average_speed < current_speed:
-        return "high"
+    if isinstance(params_router["duration"], (int, float)) and isinstance(
+        params_router["length"], (int, float)
+    ):
+        time_in_minute = params_router["duration"] / 60
+        average_speed = params_router["length"] / time_in_minute
+        #  что нужно выводить ВОПРОС
+        if average_speed >= current_speed:
+            return "normal"
+        elif average_speed < current_speed:
+            return "high"
+        else:
+            return None
     else:
-        return None
+        raise TypeError("expected int or float")
 
 
 async def status_road_speed(coordinate_of_route: CoordinatesBetweenTPI):
