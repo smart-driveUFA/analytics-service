@@ -13,16 +13,17 @@ async def summing_result_road(route_coor: CoordinatesBetweenTPI):
     """
     weather = await processed_data_weather(route_coor.start.lat, route_coor.start.lon)
     if weather:
+        weather.pop("_id")
         message = await response_openai(
             weather, route_coor.start.lat, route_coor.start.lon
         )
-        if message:
-            traffic_jams_status = await status_road_speed(route_coor)
-            analysis_data = {
-                "weather": weather,
-                "recommended information": message,
-                "road_traffic_status": traffic_jams_status,
-            }
-            client_mongo["summing_result"].insert_one(analysis_data)
-            return analysis_data
+        traffic_jams_status = await status_road_speed(route_coor)
+        analysis_data = {
+            "weather": weather,
+            "recommended_information": message,
+            "road_traffic_status": traffic_jams_status,
+        }
+        client_mongo["summing_result"].insert_one(analysis_data)
+        analysis_data.pop("_id", None)
+        return analysis_data
     return None
