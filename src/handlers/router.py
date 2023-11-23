@@ -33,29 +33,20 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
                 content={
-                    "message": "successfully added",
+                    "message": "successfully created",
                 },
             )
-        else:
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={
-                    "message": "token is invalid",
-                },
-            )
+        return None
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
-                "message": "provide an access token",
+                "message": "check Authorization token, and try again",
             },
         )
 
 
-@router.post(
-    "/traffic-status",
-    response_model=SummingData,
-)
+@router.post("/traffic-status", response_model=SummingData)
 async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI):
     """
     check authentication and process road data
@@ -65,22 +56,19 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
-        token_verification = await send_header_to_auth_service(token)
+        token_verification = await send_header_to_auth_service(
+            token, route_coor.start.lat, route_coor.start.lon
+        )
         if token_verification:
             return await summing_result_road(
                 route_coor
             )  # здесь бизнес логика по сбору данных
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={
-                "message": "token is invalid",
-            },
-        )
+        return None
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
-                "message": "provide an access token",
+                "message": "check Authorization token, and try again",
             },
         )
 
