@@ -61,16 +61,19 @@ async def _count_time_route(params_router: Dict[str, int]):
     :param params_router: dict with key duration and length
     :return: str status of traffic jams
     """
-    current_speed = 80
+    minutes_to_hours = 60
+    meters_to_kilos = 1000
+    normal_time = 1.3
     if isinstance(params_router["duration"], (int, float)) and isinstance(
         params_router["length"], (int, float)
     ):
-        time_in_minute = params_router["duration"] / 60
-        average_speed = params_router["length"] / time_in_minute
+        duration = params_router["length"] / meters_to_kilos
+        time_in_minute = params_router["duration"] / minutes_to_hours
+        average_speed = duration / time_in_minute
         #  что нужно выводить ВОПРОС
-        if average_speed >= current_speed:
+        if average_speed >= normal_time:
             return "normal"
-        elif average_speed < current_speed:
+        elif average_speed < normal_time:
             return "high"
         else:
             return None

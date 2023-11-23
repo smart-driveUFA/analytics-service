@@ -1,5 +1,3 @@
-from typing import Union
-
 from fastapi import APIRouter, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -56,7 +54,7 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
 
 @router.post(
     "/traffic-status",
-    response_model=Union[SummingData, dict, None],
+    response_model=SummingData,
 )
 async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI):
     """
