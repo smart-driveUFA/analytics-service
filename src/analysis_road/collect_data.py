@@ -13,7 +13,7 @@ async def summing_result_road(route_coor: CoordinatesBetweenTPI):
     """
     weather = await processed_data_weather(route_coor.start.lat, route_coor.start.lon)
     if weather:
-        weather.pop("_id")
+        weather.pop("_id", None)
         message = await response_openai(
             weather, route_coor.start.lat, route_coor.start.lon
         )

@@ -9,7 +9,7 @@ async def send_header_to_auth_service(token: str, lat: float, lon: float) -> boo
     :param lat: coordinate parameters latitude location
     :param lon: coordinate parameters latitude location
     :param token: Authorization Bearer
-    :return: token verification status
+    :return: token verification status True or False
     """
     headers = {
         "Authorization": token,
@@ -19,5 +19,10 @@ async def send_header_to_auth_service(token: str, lat: float, lon: float) -> boo
         "lon": lon,
     }
     url = os.getenv("AUTH_CHECK_TOKEN_URL")
-    response = requests.post(url, headers=headers, json=coordinates, timeout=(1, 1))
-    return response.status_code == 200
+    try:
+        response = requests.post(url, headers=headers, json=coordinates, timeout=(1, 1))
+        return response.status_code == 200
+    except requests.ConnectionError:
+        return False
+    except requests.Timeout:
+        return False

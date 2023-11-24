@@ -36,7 +36,12 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
                     "message": "successfully created",
                 },
             )
-        return None
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "message": "check Authorization token, and try again",
+            },
+        )
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,7 +51,7 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
         )
 
 
-@router.post("/traffic-status", response_model=SummingData)
+@router.post("/traffic-status", response_model=SummingData, response_class=JSONResponse)
 async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI):
     """
     check authentication and process road data
@@ -60,10 +65,16 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
             token, route_coor.start.lat, route_coor.start.lon
         )
         if token_verification:
-            return await summing_result_road(
+            return await summing_result_road(  # здесь бизнес логика по сбору данных
                 route_coor
-            )  # здесь бизнес логика по сбору данных
-        return None
+            )
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "message": "check Authorization token, and try again",
+                },
+            )
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,

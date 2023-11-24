@@ -26,5 +26,10 @@ async def request_auth_create_tpi(
         "Authorization": token,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
-    response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
-    return response.status_code == 201
+    try:
+        response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
+        return response.status_code == 201
+    except requests.ConnectionError:
+        return False
+    except requests.Timeout:
+        return False

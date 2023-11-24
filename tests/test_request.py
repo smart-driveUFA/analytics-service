@@ -31,7 +31,7 @@ async def test_create_tpi():
         )
         assert result.status_code == 201
         assert result.json() == {
-            "message": "successfully added",
+            "message": "successfully created",
         }
         assert mock_create_tpi.call_count == 1
 
@@ -48,7 +48,7 @@ async def test_bad_create_tpi():
         )
         assert result.status_code == 401
         assert result.json() == {
-            "message": "token is invalid",
+            "message": "check Authorization token, and try again",
         }
         assert mock_bad_create_tpi.call_count == 1
 
@@ -60,7 +60,7 @@ async def test_bad_create_tpi_without_headers():
     )
     assert result.status_code == 401
     assert result.json() == {
-        "message": "provide an access token",
+        "message": "check Authorization token, and try again",
     }
 
 
@@ -71,7 +71,7 @@ async def test_collect_road_data():
     mock_return_summing_result_road = mock.AsyncMock(
         return_value={
             "weather": response_api,
-            "recommended information": chat_gpt_response["message"],
+            "recommended_information": chat_gpt_response["message"],
             "road_traffic_status": traffic_jams_good,
         }
     )
@@ -99,7 +99,7 @@ async def test_collect_road_data():
         assert result.status_code == 200
         assert result.json() == {
             "weather": response_api,
-            "recommended information": chat_gpt_response["message"],
+            "recommended_information": chat_gpt_response["message"],
             "road_traffic_status": traffic_jams_good,
         }
 
@@ -126,7 +126,7 @@ async def test_collect_road_data_failure():
         )
         assert result.status_code == 401
         assert result.json() == {
-            "message": "token is invalid",
+            "message": "check Authorization token, and try again",
         }
 
 
@@ -146,7 +146,7 @@ async def test_collect_road_data_without_headers():
         json=query_params,
     )
     assert result.status_code == 401
-    assert result.json()["message"] == "provide an access token"
+    assert result.json()["message"] == "check Authorization token, and try again"
 
 
 async def test_collect_road_data_without_query_params():
