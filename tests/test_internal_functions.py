@@ -3,19 +3,23 @@ from unittest.mock import patch
 
 from starlette import status
 
+from src.analysis_road.collect_data import summing_result_road
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
+from src.handlers.schemas import CoordinatesBetweenTPI
 from src.open_ai.open_ai_response import (
     _convert_data_to_message_openai,
     response_openai,
 )
 from src.utils import Url
 from tests.fixture import (
+    coor_data,
     headers,
     message_for_chatgpt,
     response_api,
     result_chatgpt,
     start_data,
+    traffic_jams_good,
 )
 
 
@@ -46,7 +50,9 @@ async def test_request_auth_create_tpi_bad(mock_requests):
 @patch("src.auth.check_auth.requests")
 async def test_send_header_to_auth_service(mock_requests):
     mock_requests.post.return_value.status_code = status.HTTP_200_OK
-    response = await send_header_to_auth_service(headers)
+    response = await send_header_to_auth_service(
+        headers, start_data["lat"], start_data["lon"]
+    )
     assert response is True
 
 
@@ -91,3 +97,22 @@ async def test_url_weather():
 async def test_url_chat_gpt():
     url = Url().open_ai
     assert url == "https://api.openai.com/v1/chat/completions"
+
+
+async def test_summing_result_road():
+    with patch(
+        "src.analysis_road.collect_data.processed_data_weather",
+        return_value=response_api,
+    ), patch(
+        "src.analysis_road.collect_data.response_openai", return_value=result_chatgpt
+    ), patch(
+        "src.analysis_road.collect_data.status_road_speed",
+        return_value=traffic_jams_good,
+    ):
+        coor = CoordinatesBetweenTPI.model_validate(coor_data)
+        result = await summing_result_road(coor)
+        assert result == {
+            "weather": response_api,
+            "recommended_information": result_chatgpt,
+            "road_traffic_status": traffic_jams_good,
+        }

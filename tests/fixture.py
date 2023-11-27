@@ -4,6 +4,10 @@ from starlette.responses import JSONResponse
 start_data = {"lat": 54.4334, "lon": 55.5651}
 
 stop_data = {"lat": 54.7431, "lon": 55.9678}
+coor_data = {
+    "start": start_data,
+    "stop": stop_data,
+}
 response_yandex_example = {
     "now": 1698234863,
     "now_dt": "2023-10-25T11:54:23.805001Z",

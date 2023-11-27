@@ -49,25 +49,25 @@ async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
         "humidity": fact["humidity"],
         "wind_gust": fact["wind_gust"],
     }
-    await client_mongo["response_weather"].insert_one(result)
+    client_mongo["response_weather"].insert_one(result)
     return result
 
 
 async def processed_data_weather(
-    lat: float, lon: float, count: int = 1
+    lat: float,
+    lon: float,
 ) -> Union[dict, None]:
     """
     if not cache call _get_weather and save to redis
     :param lat:latitude of location
     :param lon: longitude of location
-    :param count: quantity of days to request
     :return: dict _convert_yandex_weather_to_dict
     """
     _name = f"yandex weather {lat}-{lon}"
     cached_data = await redis_client.get(name=_name)
     if cached_data:
         return await _convert_yandex_weather_to_dict(cached_data)
-    weather = await _get_weather(lat, lon, count)
+    weather = await _get_weather(lat, lon)
     if weather:
         await redis_client.set(name=_name, value=weather)
         return await _convert_yandex_weather_to_dict(weather)
