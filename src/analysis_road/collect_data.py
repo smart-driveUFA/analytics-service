@@ -7,9 +7,9 @@ from src.yandex_api.weather_api import processed_data_weather
 
 async def summing_result_road(route_coor: CoordinatesBetweenTPI):
     """
-    collect data of road to response dict
+    collect data of road-to-response dict
     :param route_coor: coordinate parameters start and stop location
-    :return: SummingData weather, recommended message and traffic jams status, someone can be None
+    :return: SummingData weather, recommended message and traffic jams status; someone can be None
     """
     weather = await processed_data_weather(route_coor.start.lat, route_coor.start.lon)
     if weather:

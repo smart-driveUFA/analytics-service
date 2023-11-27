@@ -21,7 +21,7 @@ async def send_header_to_auth_service(token: str, lat: float, lon: float) -> boo
     url = os.getenv("AUTH_CHECK_TOKEN_URL")
     try:
         response = requests.post(url, headers=headers, json=coordinates, timeout=(1, 1))
-        return response.status_code == 200
+        return response.status_code == 201
     except requests.ConnectionError:
         return False
     except requests.Timeout:
