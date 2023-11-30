@@ -1,4 +1,3 @@
-import copy
 import os
 from typing import Union
 
@@ -25,8 +24,8 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
     response = requests.get(url=url, headers=headers, timeout=(1, 1))
     if response.status_code == status.HTTP_200_OK:
         response_json = response.json()
-        value_for_mongodb = copy.deepcopy(response_json)
-        await client_mongo["yandex"].insert_one(value_for_mongodb)
+        await client_mongo["yandex"].insert_one(response_json)
+        response_json.pop("_id", None)
         return response_json
     return None
 
@@ -50,6 +49,7 @@ async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
         "wind_gust": fact["wind_gust"],
     }
     client_mongo["response_weather"].insert_one(result)
+    result.pop("_id", None)
     return result
 
 
@@ -69,6 +69,7 @@ async def processed_data_weather(
         return await _convert_yandex_weather_to_dict(cached_data)
     weather = await _get_weather(lat, lon)
     if weather:
+        weather.pop("_id", None)
         await redis_client.set(name=_name, value=weather)
         return await _convert_yandex_weather_to_dict(weather)
     else:

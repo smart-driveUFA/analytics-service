@@ -64,11 +64,12 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
         token_verification = await send_header_to_auth_service(token)
         if token_verification:
             result_process = await summing_result_road(route_coor)
-            result_process["tpi_coordinates"] = {
-                "lat": route_coor.start.lat,
-                "lon": route_coor.start.lon,
-            }
-            await send_result_auth(result_process)
+            result_process.pop("_id", None)
+            await send_result_auth(
+                result_process, token, route_coor.start.lat, route_coor.start.lon
+            )
+            result_process.pop("lat", None)
+            result_process.pop("lon", None)
             return result_process
         else:
             return JSONResponse(
