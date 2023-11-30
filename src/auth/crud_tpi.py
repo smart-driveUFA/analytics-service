@@ -19,9 +19,10 @@ async def request_auth_create_tpi(
         "Authorization": token,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
-    data = tpi_data.model_dump()
     try:
-        response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
+        response = requests.post(
+            url, data=tpi_data.model_dump(), headers=headers, timeout=(1, 1)
+        )
         return response.status_code == 201
     except requests.ConnectionError:
         return False

@@ -24,7 +24,8 @@ class Redis:
     async def set(
         self, name: KeyT, value: Union[AnyFieldT, EncodableT], lifetime: ExpiryT = 120
     ):
-        await self.redis_client.set(name=name, value=json.dumps(value), ex=lifetime)
+        a = json.dumps(value)
+        await self.redis_client.set(name=name, value=a, ex=lifetime)
 
     async def delete(self, name: KeyT):
         await self.redis_client.delete(name)

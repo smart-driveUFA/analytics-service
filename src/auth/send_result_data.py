@@ -1,8 +1,15 @@
+import os
+
 from aiohttp import ClientSession
 
 
-async def send_result_auth(processed_data: dict):
+async def send_result_auth(processed_data: dict, token: str, lat: float, lon: float):
+    headers = {
+        "Authorization": token,
+    }
+    processed_data["lat"] = lat
+    processed_data["lon"] = lon
     async with ClientSession() as session, session.post(
-        "AUTH_CHECK_REQUEST_COUNT", data=processed_data
+        os.getenv("AUTH_CHECK_REQUEST_COUNT"), data=processed_data, headers=headers
     ) as resp:
         resp.close()

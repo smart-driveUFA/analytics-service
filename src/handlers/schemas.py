@@ -34,5 +34,4 @@ class TrafficQuantity(BaseModel):
 class SummingData(BaseModel):
     weather: Union[ResponseAPI, None]
     recommended_information: Union[str, None]
-    road_traffic_status: Union[TrafficQuantity, None]
-    tpi_coordinates: GetDataCoordinates
+    traffic_jams_status: Union[TrafficQuantity, None]
