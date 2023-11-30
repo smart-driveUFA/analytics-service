@@ -49,8 +49,10 @@ async def _send_request_2gis(coordinate_of_route: CoordinatesBetweenTPI):
 
     match response.status_code:
         case status.HTTP_200_OK:
-            client_mongo["response_2gis"].insert_one(response.json())
-            return response.json()["result"][0]
+            if response.json()["status"] == "OK":
+                client_mongo["response_2gis"].insert_one(response.json())
+                return response.json()["result"][0]
+            return None
         case _:
             return None
 

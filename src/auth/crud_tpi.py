@@ -2,30 +2,24 @@ import os
 
 import requests
 
+from src.handlers.schemas import CreateTPI
+
 
 async def request_auth_create_tpi(
-    lat: float,
-    lon: float,
-    direction: str,
+    tpi_data: CreateTPI,
     token: str,
 ) -> bool:
     """
     Send request to auth_service for authentication headers from request and request for create tpi
-    :param lat: tpi's latitude
-    :param lon: tpi's longitude
-    :param direction: direction of movement
+    :param tpi_data:
     :param token: Authorization Bearer
     :return: create verification status
     """
-    data = {
-        "latitude": lat,
-        "longitude": lon,
-        "direction": direction,
-    }
     headers = {
         "Authorization": token,
     }
     url = os.getenv("AUTH_CREATE_TPI_URL")
+    data = tpi_data.model_dump()
     try:
         response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
         return response.status_code == 201

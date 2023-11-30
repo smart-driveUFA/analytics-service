@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 from src.analysis_road.collect_data import summing_result_road
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
+from src.auth.send_result_data import send_result_auth
 from src.database.mongo import client_mongo
 from src.handlers.schemas import CoordinatesBetweenTPI, CreateTPI, SummingData
 
@@ -24,9 +25,7 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
     """
     if request.headers.get("Authorization", None):
         tpi_response = await request_auth_create_tpi(
-            tpi_data.lat,
-            tpi_data.lon,
-            tpi_data.direction,
+            tpi_data,
             request.headers["Authorization"],
         )
         if tpi_response:
@@ -57,17 +56,20 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
     check authentication and process road data
     :param request: info about request for check authentication
     :param route_coor: coordinate parameters start and stop location
-    :return: SummingData weather, recommended message and traffic jams status or unauthorized status
+    :return: SummingData weather, recommended message and traffic jams status and
+    coordinates of tpi or unauthorized status
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
-        token_verification = await send_header_to_auth_service(
-            token, route_coor.start.lat, route_coor.start.lon
-        )
+        token_verification = await send_header_to_auth_service(token)
         if token_verification:
-            return await summing_result_road(  # здесь бизнес логика по сбору данных
-                route_coor
-            )
+            result_process = await summing_result_road(route_coor)
+            result_process["tpi_coordinates"] = {
+                "lat": route_coor.start.lat,
+                "lon": route_coor.start.lon,
+            }
+            await send_result_auth(result_process)
+            return result_process
         else:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
