@@ -10,9 +10,14 @@ class GetDataCoordinates(BaseModel):
     lon: float
 
 
-class CreateTPI(GetDataCoordinates):
-    direction: str
-    count: int
+class EnterDirection(BaseModel):
+    start: str
+    end: str
+    highway: str
+
+
+class CreateTPI(GetDataCoordinates, EnterDirection):
+    pass
 
 
 class CoordinatesBetweenTPI(BaseModel):
@@ -27,6 +32,7 @@ class TrafficQuantity(BaseModel):
 
 
 class SummingData(BaseModel):
-    weather: ResponseAPI
+    weather: Union[ResponseAPI, None]
     recommended_information: Union[str, None]
-    road_traffic_status: TrafficQuantity
+    road_traffic_status: Union[TrafficQuantity, None]
+    tpi_coordinates: GetDataCoordinates

@@ -58,7 +58,7 @@ async def processed_data_weather(
     lon: float,
 ) -> Union[dict, None]:
     """
-    if not cache call _get_weather and save to redis
+    if not cache, call _get_weather and save it to redis
     :param lat:latitude of location
     :param lon: longitude of location
     :return: dict _convert_yandex_weather_to_dict
