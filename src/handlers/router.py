@@ -8,6 +8,7 @@ from src.auth.crud_tpi import request_auth_create_tpi
 from src.auth.send_result_data import send_result_auth
 from src.database.mongo import client_mongo
 from src.handlers.schemas import CoordinatesBetweenTPI, CreateTPI, SummingData
+from src.search_coordinates.search_end_coor import find_coordinates_end_of_highway
 
 router = APIRouter(
     prefix="/routers",
@@ -21,12 +22,20 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
     Accepts the request to create tpi with params
     :param request: info about request
     :param tpi_data: schema of data
-    :return: generated weather dictionary from location data
+    :return:
     """
     if request.headers.get("Authorization", None):
+        (
+            coordinates_end_lat,
+            coordinates_end_lon,
+        ) = await find_coordinates_end_of_highway(
+            tpi_data.lat_start, tpi_data.lon_start, tpi_data.end
+        )
         tpi_response = await request_auth_create_tpi(
             tpi_data,
             request.headers["Authorization"],
+            coordinates_end_lat,
+            coordinates_end_lon,
         )
         if tpi_response:
             return JSONResponse(

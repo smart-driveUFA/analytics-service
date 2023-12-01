@@ -6,8 +6,8 @@ from src.yandex_api.schemas import ResponseAPI
 
 
 class GetDataCoordinates(BaseModel):
-    lat: float
-    lon: float
+    lat_start: float
+    lon_start: float
 
 
 class EnterDirection(BaseModel):
