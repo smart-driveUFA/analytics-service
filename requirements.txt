@@ -79,3 +79,5 @@ websockets==11.0.3
 yarl==1.9.2
 
 googlemaps~=4.10.0
+
+dadata~=21.10.1
