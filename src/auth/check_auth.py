@@ -2,21 +2,35 @@ import os
 
 import requests
 
+from src.handlers.schemas import TPI
 
-async def send_header_to_auth_service(token: str) -> bool:
+
+async def send_header_to_auth_service(token: str, route_coor: TPI):
     """
     Send request to auth_service for authentication headers from request
+    :param route_coor:
     :param token: Authorization Bearer
     :return: token verification status True or False
     """
     headers = {
         "Authorization": token,
     }
-    url = os.getenv("AUTH_CHECK_TOKEN_URL")
+    url = os.getenv("AUTH_GET_COOR")
+    data = {
+        "lat_start": route_coor.lat_start,
+        "lon_start": route_coor.lon_start,
+        "start": route_coor.start,
+        "end": route_coor.end,
+        "highway": route_coor.highway,
+    }
     try:
-        response = requests.get(url, headers=headers, timeout=(1, 1))
-        return response.status_code == 200
+        response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
     except requests.ConnectionError:
-        return False
+        return None, None
     except requests.Timeout:
-        return False
+        return None, None
+    return (
+        (response.json()["lat_end"], response.json()["lon_end"])
+        if response.status_code == 200
+        else (None, None)
+    )

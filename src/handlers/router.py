@@ -7,7 +7,7 @@ from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
 from src.auth.send_result_data import send_result_auth
 from src.database.mongo import client_mongo
-from src.handlers.schemas import CoordinatesBetweenTPI, CreateTPI, SummingData
+from src.handlers.schemas import TPI, SummingData
 from src.search_coordinates.search_end_coor import find_coordinates_end_of_highway
 
 router = APIRouter(
@@ -17,7 +17,7 @@ router = APIRouter(
 
 
 @router.post("/create-tpi", response_class=JSONResponse)
-async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
+async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
     """
     Accepts the request to create tpi with params
     :param request: info about request
@@ -60,7 +60,7 @@ async def create_tpi(request: Request, tpi_data: CreateTPI) -> JSONResponse:
 
 
 @router.post("/traffic-status", response_model=SummingData, response_class=JSONResponse)
-async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI):
+async def collect_road_data(request: Request, route_coor: TPI):
     """
     check authentication and process road data
     :param request: info about request for check authentication
@@ -70,12 +70,12 @@ async def collect_road_data(request: Request, route_coor: CoordinatesBetweenTPI)
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
-        token_verification = await send_header_to_auth_service(token)
-        if token_verification:
-            result_process = await summing_result_road(route_coor)
+        lat_end, lon_end = await send_header_to_auth_service(token, route_coor)
+        if lat_end and lon_end:
+            result_process = await summing_result_road(route_coor, lat_end, lon_end)
             result_process.pop("_id", None)
             await send_result_auth(
-                result_process, token, route_coor.start.lat, route_coor.start.lon
+                result_process, token, route_coor.lat_start, route_coor.lon_start
             )
             result_process.pop("lat", None)
             result_process.pop("lon", None)

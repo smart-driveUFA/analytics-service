@@ -2,11 +2,11 @@ import os
 
 import requests
 
-from src.handlers.schemas import CreateTPI
+from src.handlers.schemas import TPI
 
 
 async def request_auth_create_tpi(
-    tpi_data: CreateTPI,
+    tpi_data: TPI,
     token: str,
     end_lat: float,
     end_lon: float,
@@ -22,7 +22,7 @@ async def request_auth_create_tpi(
     headers = {
         "Authorization": token,
     }
-    url = os.getenv("AUTH_CREATE_TPI_URL")
+    url = os.getenv("AUTH_TPI_URL")
     try:
         data = tpi_data.model_dump()
         data["lat_end"] = end_lat
