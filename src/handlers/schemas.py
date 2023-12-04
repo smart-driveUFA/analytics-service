@@ -16,13 +16,8 @@ class EnterDirection(BaseModel):
     highway: str
 
 
-class CreateTPI(GetDataCoordinates, EnterDirection):
+class TPI(GetDataCoordinates, EnterDirection):
     pass
-
-
-class CoordinatesBetweenTPI(BaseModel):
-    start: GetDataCoordinates
-    stop: GetDataCoordinates
 
 
 class TrafficQuantity(BaseModel):

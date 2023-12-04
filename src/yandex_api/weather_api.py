@@ -21,13 +21,19 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
     headers = {
         "X-Yandex-API-Key": str(os.getenv("WEATHER_YANDEX")),
     }
-    response = requests.get(url=url, headers=headers, timeout=(1, 1))
-    if response.status_code == status.HTTP_200_OK:
-        response_json = response.json()
-        await client_mongo["yandex"].insert_one(response_json)
-        response_json.pop("_id", None)
-        return response_json
-    return None
+    try:
+        response = requests.get(url=url, headers=headers, timeout=(1, 1))
+    except requests.Timeout:
+        return None
+    except requests.ConnectionError:
+        return None
+    else:
+        if response.status_code == status.HTTP_200_OK:
+            response_json = response.json()
+            await client_mongo["yandex"].insert_one(response_json)
+            response_json.pop("_id", None)
+            return response_json
+        return None
 
 
 async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:

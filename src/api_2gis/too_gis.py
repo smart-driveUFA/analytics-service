@@ -6,7 +6,6 @@ from starlette import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
-from src.handlers.schemas import CoordinatesBetweenTPI
 from src.utils import Url
 
 router = APIRouter(
@@ -18,7 +17,9 @@ router = APIRouter(
 @router.post(
     "/2gis",
 )
-async def _send_request_2gis(coordinate_of_route: CoordinatesBetweenTPI):
+async def _send_request_2gis(
+    lat_start: float, lon_start: float, lat_end: float, lon_end: float
+):
     """
     send request to 2gis and
     :param coordinate_of_route: coordinate parameters start and stop location
@@ -29,13 +30,13 @@ async def _send_request_2gis(coordinate_of_route: CoordinatesBetweenTPI):
         "points": [
             {
                 "type": "stop",
-                "lon": coordinate_of_route.start.lon,
-                "lat": coordinate_of_route.start.lat,
+                "lon": lat_start,
+                "lat": lon_start,
             },
             {
                 "type": "stop",
-                "lon": coordinate_of_route.stop.lon,
-                "lat": coordinate_of_route.stop.lat,
+                "lon": lat_end,
+                "lat": lon_end,
             },
         ],
         "locale": "ru",
@@ -46,7 +47,6 @@ async def _send_request_2gis(coordinate_of_route: CoordinatesBetweenTPI):
     }
 
     response = requests.post(url=url, json=data, timeout=(1, 2))
-
     match response.status_code:
         case status.HTTP_200_OK:
             if response.json()["status"] == "OK":
@@ -83,20 +83,22 @@ async def _count_time_route(params_router: Dict[str, int]):
         raise TypeError("expected int or float")
 
 
-async def status_road_speed(coordinate_of_route: CoordinatesBetweenTPI):
+async def status_road_speed(
+    lat_start: float, lon_start: float, lat_end: float, lon_end: float
+):
     """
     if not cache call _send_request_2gis and _count_time_route and save response to redis
-    :param coordinate_of_route: coordinate parameters start and stop location
+    :param lon_end:
+    :param lat_end:
+    :param lon_start:
+    :param lat_start:
     :return: dict params about road with keys duration length status of traffic jams
     """
-    _key_of_cache = (
-        f"{coordinate_of_route.start.lat, coordinate_of_route.start.lon}"
-        f"-{coordinate_of_route.stop.lat, coordinate_of_route.stop.lon}"
-    )
+    _key_of_cache = f"{lat_start, lon_start}" f"-{lat_end, lon_end}"
     cached_data = await redis_client.get(name=_key_of_cache)
     if cached_data:
         return cached_data
-    time_and_length = await _send_request_2gis(coordinate_of_route)
+    time_and_length = await _send_request_2gis(lat_start, lon_start, lat_end, lon_end)
     if time_and_length:
         time_and_length["status_of_jams"] = await _count_time_route(time_and_length)
         await redis_client.set(name=_key_of_cache, value=time_and_length)

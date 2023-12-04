@@ -1,24 +1,28 @@
 from src.api_2gis.too_gis import status_road_speed
 from src.database.mongo import client_mongo
-from src.handlers.schemas import CoordinatesBetweenTPI
+from src.handlers.schemas import TPI
 from src.open_ai.open_ai_response import response_openai
 from src.yandex_api.weather_api import processed_data_weather
 
 
-async def summing_result_road(route_coor: CoordinatesBetweenTPI):
+async def summing_result_road(route_coor: TPI, lat_end: float, lon_end: float):
     """
     collect data of road-to-response dict
-    :param route_coor: coordinate parameters start and stop location
+    :param lon_end:
+    :param lat_end:
+    :param route_coor: coordinate parameter start location
     :return: SummingData weather, recommended message and traffic jams status; someone can be None
     """
 
-    weather = await processed_data_weather(route_coor.start.lat, route_coor.start.lon)
+    weather = await processed_data_weather(route_coor.lat_start, route_coor.lon_start)
     if weather:
         weather.pop("_id", None)
-    message = await response_openai(weather, route_coor.start.lat, route_coor.start.lon)
+    message = await response_openai(weather, route_coor.lat_start, route_coor.lon_start)
     if message:
         message.pop("_id", None)
-    traffic_jams_status = await status_road_speed(route_coor)
+    traffic_jams_status = await status_road_speed(
+        route_coor.lat_start, route_coor.lon_start, lat_end, lon_end
+    )
     if traffic_jams_status:
         traffic_jams_status.pop("_id", None)
     analysis_data = {
