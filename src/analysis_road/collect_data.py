@@ -18,8 +18,6 @@ async def summing_result_road(route_coor: TPI, lat_end: float, lon_end: float):
     if weather:
         weather.pop("_id", None)
     message = await response_openai(weather, route_coor.lat_start, route_coor.lon_start)
-    if message:
-        message.pop("_id", None)
     traffic_jams_status = await status_road_speed(
         route_coor.lat_start, route_coor.lon_start, lat_end, lon_end
     )

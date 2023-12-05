@@ -31,7 +31,7 @@ async def request_auth_create_tpi(
         response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
         if response.status_code == 400:
             return response.json()
-        return response.status_code == 200
+        return response.status_code == 201
     except requests.ConnectionError:
         return False
     except requests.Timeout:
