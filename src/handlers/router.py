@@ -38,6 +38,10 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
             coordinates_end_lon,
         )
         if tpi_response:
+            if tpi_response.get("detail", None):
+                return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST, content=tpi_response
+                )
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
                 content={
