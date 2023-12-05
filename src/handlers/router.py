@@ -1,3 +1,5 @@
+from typing import Dict, Union
+
 from fastapi import APIRouter, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -19,10 +21,12 @@ router = APIRouter(
 @router.post("/create-tpi", response_class=JSONResponse)
 async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
     """
-    Accepts the request to create tpi with params
-    :param request: info about request
-    :param tpi_data: schema of data
-    :return:
+
+    make lat and lon of end point coordinates for computing route;
+    make request to create tpi sending to auth service;
+    :param request: info about request;
+    :param tpi_data: schema of tpi's params;
+    :return: status code and context
     """
     if request.headers.get("Authorization", None):
         (
@@ -60,13 +64,16 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
 
 
 @router.post("/traffic-status", response_model=SummingData, response_class=JSONResponse)
-async def collect_road_data(request: Request, route_coor: TPI):
+async def collect_road_data(
+    request: Request, route_coor: TPI
+) -> Union[JSONResponse, Dict[str, Union[None, dict, str]]]:
     """
-    check authentication and process road data
-    :param request: info about request for check authentication
-    :param route_coor: coordinate parameters start and stop location
+    check authentication token and take lat and lon coor end point for sending 2gis
+    computing road data;
+    :param request: info about request for check authentication;
+    :param route_coor: schema of tpi's params;
     :return: SummingData weather, recommended message and traffic jams status and
-    coordinates of tpi or unauthorized status
+    coordinates of tpi or unauthorized status;
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]

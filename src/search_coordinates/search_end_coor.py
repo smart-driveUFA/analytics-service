@@ -8,7 +8,17 @@ from src.exceptions.custom_exceptions import VariableError
 from src.utils import city_russian_set
 
 
-async def find_coordinates_end_of_highway(lat: float, lon: float, end: str):
+async def find_coordinates_end_of_highway(
+    lat: float, lon: float, end: str, km: int = 50
+):
+    """
+    computing coordinates end point route in 50 km;
+    :param km: distance from tpi to end point route;
+    :param lat: latitude of tpi;
+    :param lon: longitude of tpi;
+    :param end: name city of end or start highway;
+    :return: tuple (lat, lon) of end point;
+    """
     token_dadata = os.getenv("DADATA_KEY")
     secret_dadata = os.getenv("DADATA_SECRET_KEY")
     if token_dadata and secret_dadata:
@@ -20,7 +30,7 @@ async def find_coordinates_end_of_highway(lat: float, lon: float, end: str):
                     "lon": float(coordinates_end["geo_lon"]),
                 }
                 angle = degrees(atan2(end_point["lat"] - lat, end_point["lon"] - lon))
-                destination_point = distance.geodesic(kilometers=50).destination(
+                destination_point = distance.geodesic(kilometers=km).destination(
                     Point(latitude=lat, longitude=lon), angle
                 )
                 return destination_point.latitude, destination_point.longitude

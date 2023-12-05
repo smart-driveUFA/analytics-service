@@ -21,9 +21,12 @@ async def _send_request_2gis(
     lat_start: float, lon_start: float, lat_end: float, lon_end: float
 ):
     """
-    send request to 2gis and
-    :param coordinate_of_route: coordinate parameters start and stop location
-    :return: response 2gis part of result
+    make request to 2gis;
+    :param lat_start: tpi's latitude;
+    :param lon_start: tpi's longitude;
+    :param lat_end: latitude of end point route;
+    :param lon_end: longitude of end point route;
+    :return: response 2gis part of result duration and length;
     """
     url = Url().to_gis
     data = {
@@ -59,9 +62,9 @@ async def _send_request_2gis(
 
 async def _count_time_route(params_router: Dict[str, int]):
     """
-    count travels time using length and duration
-    :param params_router: dict with key duration and length
-    :return: str status of traffic jams
+    count travels time using length and duration;
+    :param params_router: dict with key duration and length;
+    :return: str status of traffic jams;
     """
     minutes_to_hours = 60
     meters_to_kilos = 1000
@@ -87,12 +90,12 @@ async def status_road_speed(
     lat_start: float, lon_start: float, lat_end: float, lon_end: float
 ):
     """
-    if not cache call _send_request_2gis and _count_time_route and save response to redis
-    :param lon_end:
-    :param lat_end:
-    :param lon_start:
-    :param lat_start:
-    :return: dict params about road with keys duration length status of traffic jams
+    if not cache call _send_request_2gis and _count_time_route and save response to redis;
+    :param lat_start: tpi's latitude;
+    :param lon_start: tpi's longitude;
+    :param lat_end: latitude of end point route;
+    :param lon_end: longitude of end point route;
+    :return: dict params about a road with keys duration length status of traffic jams;
     """
     _key_of_cache = f"{lat_start, lon_start}" f"-{lat_end, lon_end}"
     cached_data = await redis_client.get(name=_key_of_cache)
