@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 import requests
 
@@ -10,7 +11,7 @@ async def request_auth_create_tpi(
     token: str,
     end_lat: float,
     end_lon: float,
-) -> bool:
+) -> Union[bool, dict]:
     """
     Send request to auth_service for authentication headers from request and request for create tpi
     :param end_lon:
@@ -28,7 +29,9 @@ async def request_auth_create_tpi(
         data["lat_end"] = end_lat
         data["lon_end"] = end_lon
         response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
-        return response.status_code == 201
+        if response.status_code == 400:
+            return response.json()
+        return response.status_code == 200
     except requests.ConnectionError:
         return False
     except requests.Timeout:
