@@ -1,22 +1,13 @@
-from typing import Dict
+from typing import Dict, Union
 
 import requests
-from fastapi import APIRouter
 from starlette import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
 from src.utils import Url
 
-router = APIRouter(
-    prefix="/check",
-    tags=["router_api"],
-)
 
-
-@router.post(
-    "/2gis",
-)
 async def _send_request_2gis(
     lat_start: float, lon_start: float, lat_end: float, lon_end: float
 ):
@@ -27,6 +18,7 @@ async def _send_request_2gis(
     :param lat_end: latitude of end point route;
     :param lon_end: longitude of end point route;
     :return: response 2gis part of result duration and length;
+
     """
     url = Url().to_gis
     data = {
@@ -60,30 +52,57 @@ async def _send_request_2gis(
             return None
 
 
-async def _count_time_route(params_router: Dict[str, int]):
+async def _count_time_route(params_router: Dict[str, int]) -> Union[int, None]:
     """
     count travels time using length and duration;
     :param params_router: dict with key duration and length;
-    :return: str status of traffic jams;
+    :return: int grade of traffic jams;
     """
-    minutes_to_hours = 60
+    seconds_to_hours = 3600
     meters_to_kilos = 1000
-    normal_time = 1.3
+    length_of_road = 35
+    grade_of_jams_city = {
+        0: range(80, 90),
+        1: range(70, 80),
+        2: range(60, 70),
+        3: range(50, 60),
+        4: range(40, 50),
+        5: range(30, 40),
+        6: range(25, 30),
+        7: range(20, 25),
+        8: range(15, 20),
+        9: range(10, 15),
+        10: range(10),
+    }
+    grade_of_jams_highway = {
+        0: range(130, 150),
+        1: range(110, 130),
+        2: range(90, 110),
+        3: range(70, 90),
+        4: range(50, 70),
+        5: range(40, 50),
+        6: range(30, 40),
+        7: range(20, 30),
+        8: range(15, 20),
+        9: range(10, 15),
+        10: range(10),
+    }
     if isinstance(params_router["duration"], (int, float)) and isinstance(
         params_router["length"], (int, float)
     ):
-        duration = params_router["length"] / meters_to_kilos
-        time_in_minute = params_router["duration"] / minutes_to_hours
-        average_speed = duration / time_in_minute
-        #  что нужно выводить ВОПРОС
-        if average_speed >= normal_time:
-            return "normal"
-        elif average_speed < normal_time:
-            return "high"
+        km = params_router["length"] / meters_to_kilos  # 51.709
+        time = params_router["duration"] / seconds_to_hours  # 1.01
+        average_speed = km / time  # 50.246
+        if km >= length_of_road:
+            type_of_grade = grade_of_jams_highway
         else:
-            return None
+            type_of_grade = grade_of_jams_city
+        for k, v in type_of_grade.items():
+            if int(average_speed) in v:
+                return k
+        return None
     else:
-        raise TypeError("expected int or float")
+        return None
 
 
 async def status_road_speed(
@@ -103,7 +122,9 @@ async def status_road_speed(
         return cached_data
     time_and_length = await _send_request_2gis(lat_start, lon_start, lat_end, lon_end)
     if time_and_length:
-        time_and_length["status_of_jams"] = await _count_time_route(time_and_length)
+        status_of_jams = await _count_time_route(time_and_length)
+        if isinstance(status_of_jams, (int, float)):
+            time_and_length["status_of_jams"] = status_of_jams
         await redis_client.set(name=_key_of_cache, value=time_and_length)
         return time_and_length
     else:
