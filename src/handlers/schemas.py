@@ -23,7 +23,7 @@ class TPI(GetDataCoordinates, EnterDirection):
 class TrafficQuantity(BaseModel):
     duration: int
     length: int
-    status_of_jams: str
+    status_of_jams: int
 
 
 class SummingData(BaseModel):
