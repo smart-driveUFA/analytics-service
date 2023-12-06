@@ -32,8 +32,9 @@ async def send_header_to_auth_service(
         return None, None
     except requests.Timeout:
         return None, None
-    return (
-        (response.json()["lat_end"], response.json()["lon_end"])
-        if response.status_code == 200
-        else (None, None)
-    )
+    if response.status_code == 200:
+        return {
+            "lat_end": response.json()["lat_end"],
+            "lon_end": response.json()["lon_end"],
+        }
+    return {"detail": response.json()["detail"], "status_code": response.status_code}

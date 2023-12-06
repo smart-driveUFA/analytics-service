@@ -42,11 +42,10 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
             coordinates_end_lon,
         )
         if tpi_response:
-            if isinstance(tpi_response, dict):
-                if tpi_response.get("detail", None):
-                    return JSONResponse(
-                        status_code=status.HTTP_400_BAD_REQUEST, content=tpi_response
-                    )
+            if isinstance(tpi_response, dict) and tpi_response.get("detail", None):
+                return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST, content=tpi_response
+                )
             return JSONResponse(
                 status_code=status.HTTP_201_CREATED,
                 content={
@@ -82,9 +81,11 @@ async def collect_road_data(
     """
     if request.headers.get("Authorization", None):
         token = request.headers["Authorization"]
-        lat_end, lon_end = await send_header_to_auth_service(token, route_coor)
-        if lat_end and lon_end:
-            result_process = await summing_result_road(route_coor, lat_end, lon_end)
+        coor_end_point = await send_header_to_auth_service(token, route_coor)
+        if coor_end_point.get("lat_end", None) and coor_end_point.get("lon_end", None):
+            result_process = await summing_result_road(
+                route_coor, coor_end_point["lat_end"], coor_end_point["lon_end"]
+            )
             result_process.pop("_id", None)
             await send_result_auth(
                 result_process, token, route_coor.lat_start, route_coor.lon_start
@@ -92,6 +93,13 @@ async def collect_road_data(
             result_process.pop("lat", None)
             result_process.pop("lon", None)
             return result_process
+        elif coor_end_point.get("detail", None):
+            return JSONResponse(
+                status_code=coor_end_point["status_code"],
+                content={
+                    "message": coor_end_point["detail"],
+                },
+            )
         else:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
