@@ -1,14 +1,12 @@
 import os
-from typing import Tuple, Union
+from typing import Any
 
 import requests
 
 from src.handlers.schemas import TPI
 
 
-async def send_header_to_auth_service(
-    token: str, route_coor: TPI
-) -> Tuple[Union[None, float], Union[None, float]]:
+async def send_header_to_auth_service(token: str, route_coor: TPI) -> dict[str, Any]:
     """
     make request for check token and take coordinates of end point route;
     :param route_coor: schema of tpi's params;
@@ -29,9 +27,15 @@ async def send_header_to_auth_service(
     try:
         response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
     except requests.ConnectionError:
-        return None, None
+        return {
+            "lat_end": None,
+            "lon_end": None,
+        }
     except requests.Timeout:
-        return None, None
+        return {
+            "lat_end": None,
+            "lon_end": None,
+        }
     if response.status_code == 200:
         return {
             "lat_end": response.json()["lat_end"],
