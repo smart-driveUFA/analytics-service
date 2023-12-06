@@ -13,12 +13,12 @@ async def request_auth_create_tpi(
     end_lon: float,
 ) -> Union[bool, dict]:
     """
-    Send request to auth_service for authentication headers from request and request for create tpi
-    :param end_lon:
-    :param end_lat:
-    :param tpi_data:
-    :param token: Authorization Bearer
-    :return: create verification status
+    making request for creation tpi;
+    :param end_lon: longitude of end point;
+    :param end_lat: latitude of end point;
+    :param tpi_data: schema of tpi's params;
+    :param token: Authorization Bearer;
+    :return: create verification status;
     """
     headers = {
         "Authorization": token,

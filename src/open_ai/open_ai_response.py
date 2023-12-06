@@ -11,9 +11,9 @@ from src.utils import Url
 
 async def _send_request_openai_chat_completion(message: str) -> Union[dict, None]:
     """
-    sends a request to the gpt chat and returns the analyzed data
-    :param message: chat message gpt in the content field
-    :return: response chatgpt field content
+    sends a request to the gpt chat and returns the analyzed data;
+    :param message: chat message gpt in the content field;
+    :return: response chatgpt field content;
     """
     url = Url().open_ai
     open_api_key = os.getenv("OPEN_AI_KEY")
@@ -39,9 +39,9 @@ async def _send_request_openai_chat_completion(message: str) -> Union[dict, None
 
 async def _convert_data_to_message_openai(weather: dict) -> str:
     """
-    Create task for message to chatgpt
-    :param weather: information about road with coordinates
-    :return: message of chatgpt
+    Create a task to chatgpt;
+    :param weather: weather of a road with coordinates;
+    :return: message from chatgpt;
     """
     task = (
         "Исходя из приведенных данных проведи анализ погодных условий и "
@@ -55,11 +55,11 @@ async def _convert_data_to_message_openai(weather: dict) -> str:
 
 async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, None]:
     """
-    if not cache create message to chatgpt and call _send_request_openai_chat_completion
-    and save response to redis
-    :param weather: takes current weather in location
-    :param lat: latitude of location
-    :param lon: longitude of location
+    if not cache create a message to chatgpt and call _send_request_openai_chat_completion
+    and save response to redis;
+    :param weather: takes current weather in location;
+    :param lat: latitude of location;
+    :param lon: longitude of location;
     :return:
     """
     name_cached_data = f"openai response {lat}-{lon}."

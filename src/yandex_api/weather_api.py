@@ -11,11 +11,11 @@ from src.utils import Url
 
 async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, None]:
     """
-    Make request to yandex.weather API
-    :param lat: latitude of object
-    :param lon: longitude of object
-    :param count: quantity of days in request
-    :return: yandex weather or None
+    Make request to yandex weather API;
+    :param lat: latitude of an object;
+    :param lon: longitude of an object;
+    :param count: quantity of days in request;
+    :return: yandex weather or None'
     """
     url = Url(lat, lon, count).weather
     headers = {
@@ -38,9 +38,9 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
 
 async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
     """
-    Make ResponseAPI data from yandex.weather api
-    :param yandex: dict yandex.weather api
-    :return: dict ResponseAPI
+    Make a dict result for a client from yandex weather api;
+    :param yandex: dict yandex weather api;
+    :return: dict weather;
     """
     geo_object: dict = yandex["geo_object"]["locality"]
     fact: dict = yandex["fact"]
@@ -64,10 +64,10 @@ async def processed_data_weather(
     lon: float,
 ) -> Union[dict, None]:
     """
-    if not cache, call _get_weather and save it to redis
-    :param lat:latitude of location
-    :param lon: longitude of location
-    :return: dict _convert_yandex_weather_to_dict
+    if not cache, call _get_weather and save it to redis;
+    :param lat: latitude of location;
+    :param lon: longitude of location;
+    :return: dict _convert_yandex_weather_to_dict;
     """
     _name = f"yandex weather {lat}-{lon}"
     cached_data = await redis_client.get(name=_name)

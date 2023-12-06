@@ -1,16 +1,19 @@
 import os
+from typing import Tuple, Union
 
 import requests
 
 from src.handlers.schemas import TPI
 
 
-async def send_header_to_auth_service(token: str, route_coor: TPI):
+async def send_header_to_auth_service(
+    token: str, route_coor: TPI
+) -> Tuple[Union[None, float], Union[None, float]]:
     """
-    Send request to auth_service for authentication headers from request
-    :param route_coor:
-    :param token: Authorization Bearer
-    :return: token verification status True or False
+    make request for check token and take coordinates of end point route;
+    :param route_coor: schema of tpi's params;
+    :param token: Authorization Bearer;
+    :return: lat and lon of end point route;
     """
     headers = {
         "Authorization": token,
