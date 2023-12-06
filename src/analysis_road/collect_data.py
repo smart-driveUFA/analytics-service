@@ -17,14 +17,15 @@ async def summing_result_road(
     :param route_coor: schema of tpi's params;
     :return: SummingData weather, recommended message and traffic jams status; someone can be None
     """
+    message = None
     weather = await processed_data_weather(route_coor.lat_start, route_coor.lon_start)
-    if weather:
+    if isinstance(weather, dict):
         weather.pop("_id", None)
-
-    message = await response_openai(weather, route_coor.lat_start, route_coor.lon_start)
-    if isinstance(message, dict):
-        message.pop("_id", None)
-
+        message = await response_openai(
+            weather, route_coor.lat_start, route_coor.lon_start
+        )
+        if isinstance(message, dict):
+            message.pop("_id", None)
     traffic_jams_status = await status_road_speed(
         route_coor.lat_start, route_coor.lon_start, lat_end, lon_end
     )

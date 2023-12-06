@@ -109,7 +109,7 @@ async def status_road_speed(
     lat_start: float, lon_start: float, lat_end: float, lon_end: float
 ):
     """
-    if not cache call _send_request_2gis and _count_time_route and save response to redis;
+    if cache is empty call _send_request_2gis and _count_time_route and save response to redis;
     :param lat_start: tpi's latitude;
     :param lon_start: tpi's longitude;
     :param lat_end: latitude of end point route;

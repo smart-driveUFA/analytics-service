@@ -48,9 +48,10 @@ async def _convert_data_to_message_openai(weather: dict) -> str:
         "сделай вывод о возможности гололеда и других погодных ситуаций"
     )
     information_of_road = ""
-    for key, value in weather.items():
-        information_of_road += f"{key}: {value} "
-    return f"{task} {information_of_road}"
+    if isinstance(weather, dict):
+        for key, value in weather.items():
+            information_of_road += f"{key}: {value} "
+    return f"{task} {information_of_road}" if information_of_road else None
 
 
 async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, None]:
@@ -67,8 +68,9 @@ async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, 
     if cached_data:
         return cached_data
     message = await _convert_data_to_message_openai(weather)
-    response_chatgpt = await _send_request_openai_chat_completion(message)
-    if response_chatgpt:
-        await redis_client.set(name=name_cached_data, value=response_chatgpt)
-        return response_chatgpt
+    if message:
+        response_chatgpt = await _send_request_openai_chat_completion(message)
+        if response_chatgpt:
+            await redis_client.set(name=name_cached_data, value=response_chatgpt)
+            return response_chatgpt
     return None
