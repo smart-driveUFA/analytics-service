@@ -28,7 +28,7 @@ async def test_request_auth_create_tpi(mock_requests):
     response = await request_auth_create_tpi(
         request_tpi_schemas, headers["Authorization"], 55.02, 22.201
     )
-    assert response == 1
+    assert response is True
 
 
 @patch("src.auth.crud_tpi.requests")
