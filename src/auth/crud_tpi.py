@@ -2,6 +2,7 @@ import os
 from typing import Union
 
 import requests
+from requests import Timeout
 
 from src.handlers.schemas import TPI
 
@@ -32,7 +33,7 @@ async def request_auth_create_tpi(
         if response.status_code == 400:
             return response.json()
         return response.status_code == 201
-    except requests.ConnectionError:
+    except ConnectionError:
         return False
-    except requests.Timeout:
+    except Timeout:
         return False

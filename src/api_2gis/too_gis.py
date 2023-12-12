@@ -1,6 +1,7 @@
 from typing import Dict, Union
 
 import requests
+from requests import Timeout
 from starlette import status
 
 from src.database.mongo import client_mongo
@@ -40,8 +41,12 @@ async def _send_request_2gis(
         "traffic_mode": "jam",
         "output": "summary",
     }
-
-    response = requests.post(url=url, json=data, timeout=(1, 2))
+    try:
+        response = requests.post(url=url, json=data, timeout=(1, 2))
+    except ConnectionError:
+        return None
+    except Timeout:
+        return None
     match response.status_code:
         case status.HTTP_200_OK:
             if response.json()["status"] == "OK":
@@ -90,9 +95,9 @@ async def _count_time_route(params_router: Dict[str, int]) -> Union[int, None]:
     if isinstance(params_router["duration"], (int, float)) and isinstance(
         params_router["length"], (int, float)
     ):
-        km = params_router["length"] / meters_to_kilos  # 51.709
-        time = params_router["duration"] / seconds_to_hours  # 1.01
-        average_speed = km / time  # 50.246
+        km = params_router["length"] / meters_to_kilos
+        time = params_router["duration"] / seconds_to_hours
+        average_speed = km / time
         if km >= length_of_road:
             type_of_grade = grade_of_jams_highway
         else:
@@ -125,6 +130,7 @@ async def status_road_speed(
         status_of_jams = await _count_time_route(time_and_length)
         if isinstance(status_of_jams, (int, float)):
             time_and_length["status_of_jams"] = status_of_jams
+            time_and_length.pop("_id", None)
         await redis_client.set(name=_key_of_cache, value=time_and_length)
         return time_and_length
     else:

@@ -35,29 +35,39 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
         ) = await find_coordinates_end_of_highway(
             tpi_data.lat_start, tpi_data.lon_start, tpi_data.end
         )
-        tpi_response = await request_auth_create_tpi(
-            tpi_data,
-            request.headers["Authorization"],
-            coordinates_end_lat,
-            coordinates_end_lon,
-        )
-        if tpi_response:
-            if isinstance(tpi_response, dict) and tpi_response.get("detail", None):
+        if isinstance(coordinates_end_lon, (int, float)) and isinstance(
+            coordinates_end_lat, (int, float)
+        ):
+            tpi_response = await request_auth_create_tpi(
+                tpi_data,
+                request.headers["Authorization"],
+                coordinates_end_lat,
+                coordinates_end_lon,
+            )
+            if tpi_response:
+                if isinstance(tpi_response, dict) and tpi_response.get("detail", None):
+                    return JSONResponse(
+                        status_code=status.HTTP_400_BAD_REQUEST, content=tpi_response
+                    )
                 return JSONResponse(
-                    status_code=status.HTTP_400_BAD_REQUEST, content=tpi_response
+                    status_code=status.HTTP_201_CREATED,
+                    content={
+                        "message": "successfully created",
+                    },
                 )
             return JSONResponse(
-                status_code=status.HTTP_201_CREATED,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 content={
-                    "message": "successfully created",
+                    "message": "check Authorization token, and try again",
                 },
             )
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={
-                "message": "check Authorization token, and try again",
-            },
-        )
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "error": "something is going wrong. describe the problem to us"
+                },
+            )
     else:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
