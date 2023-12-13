@@ -1,5 +1,6 @@
 import os
 from math import atan2, degrees
+from typing import Union
 
 import httpx
 from dadata import DadataAsync
@@ -20,13 +21,16 @@ async def find_coordinates_end_of_highway(
     :param end: name city of end or start highway;
     :return: tuple (lat, lon) of end point;
     """
+    name_city = await convert_name_to_valid_city(end)
     token_dadata = os.getenv("DADATA_KEY")
     secret_dadata = os.getenv("DADATA_SECRET_KEY")
     if token_dadata and secret_dadata:
-        if isinstance(end, str) and end in city_russian_set:
+        if isinstance(name_city, str):
             try:
                 async with DadataAsync(token_dadata, secret_dadata) as dadata:
-                    coordinates_end = await dadata.clean(name="address", source=end)
+                    coordinates_end = await dadata.clean(
+                        name="address", source=name_city
+                    )
                     end_point = {
                         "lat": float(coordinates_end["geo_lat"]),
                         "lon": float(coordinates_end["geo_lon"]),
@@ -41,6 +45,29 @@ async def find_coordinates_end_of_highway(
             except httpx.HTTPStatusError:
                 return None, None
         else:
-            raise TypeError("provided unexpected type")
+            return None, None
     else:
         raise VariableError("provide token_data or secret_dadata")
+
+
+async def convert_name_to_valid_city(name: str) -> Union[str, None]:
+    """
+    check string to valid and exist in set city russia;
+    :param name: name of city;
+    :return: str if city exists in set city russia or none;
+    """
+    valid_letter = "абвгдежзийклмнопрстуфхцчшщъыьэю "
+    name = name.strip()
+    if len(name) <= 1:
+        return None
+    city = name.lower()
+    for el in city:
+        if el not in valid_letter:
+            return None
+    if name[0].islower():
+        name = name.capitalize()
+    if name.count(" ") > 1:
+        return None
+    if name in city_russian_set:
+        return name
+    return None
