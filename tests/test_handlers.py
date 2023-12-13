@@ -4,7 +4,6 @@ from unittest import mock
 from httpx import AsyncClient
 from starlette import status
 
-from src.main import app
 from tests.fixture import (
     auth_service_response,
     chat_gpt_response,
@@ -15,10 +14,8 @@ from tests.fixture import (
     traffic_jams_good,
 )
 
-client = AsyncClient(app=app)
 
-
-async def test_create_tpi():
+async def test_create_tpi(client: AsyncClient):
     with mock.patch(
         "src.handlers.router.request_auth_create_tpi",
     ) as mock_create_tpi, mock.patch(
@@ -37,7 +34,7 @@ async def test_create_tpi():
         assert mock_create_tpi.call_count == 1
 
 
-async def test_bad_create_tpi():
+async def test_bad_create_tpi(client: AsyncClient):
     with mock.patch(
         "src.handlers.router.request_auth_create_tpi",
     ) as mock_bad_create_tpi:
@@ -58,7 +55,7 @@ async def test_bad_create_tpi():
             assert mock_bad_create_tpi.call_count == 1
 
 
-async def test_bad_create_tpi_without_headers():
+async def test_bad_create_tpi_without_headers(client: AsyncClient):
     result = await client.post(
         url=os.getenv("TEST_URL_CREATE_TPI"),
         json=request_tpi_without_schemas,
@@ -69,7 +66,7 @@ async def test_bad_create_tpi_without_headers():
     }
 
 
-async def test_collect_road_data():
+async def test_collect_road_data(client: AsyncClient):
     mock_send_header_to_auth_service = mock.AsyncMock(
         return_value=auth_service_response,
     )
@@ -99,7 +96,7 @@ async def test_collect_road_data():
         }
 
 
-async def test_collect_road_data_failure():
+async def test_collect_road_data_failure(client: AsyncClient):
     with mock.patch(
         "src.handlers.router.send_header_to_auth_service",
     ) as response_auth:
@@ -118,7 +115,7 @@ async def test_collect_road_data_failure():
         }
 
 
-async def test_collect_road_data_without_headers():
+async def test_collect_road_data_without_headers(client: AsyncClient):
     result = await client.post(
         url=os.getenv("TEST_URL_TRAFFIC"),
         json=request_tpi_without_schemas,
@@ -127,7 +124,7 @@ async def test_collect_road_data_without_headers():
     assert result.json()["message"] == "check Authorization token, and try again"
 
 
-async def test_collect_road_data_without_query_params():
+async def test_collect_road_data_without_query_params(client: AsyncClient):
     result = await client.post(
         url=os.getenv("TEST_URL_TRAFFIC"),
     )
