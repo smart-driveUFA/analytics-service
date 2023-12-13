@@ -2,17 +2,16 @@ import os
 from unittest import mock
 
 from httpx import AsyncClient
+from starlette import status
 
 from src.main import app
 from tests.fixture import (
     auth_service_response,
     chat_gpt_response,
-    create_tpi_fix,
     headers,
     headers_bad,
+    request_tpi_without_schemas,
     response_api,
-    start_data,
-    stop_data,
     traffic_jams_good,
 )
 
@@ -22,11 +21,13 @@ client = AsyncClient(app=app)
 async def test_create_tpi():
     with mock.patch(
         "src.handlers.router.request_auth_create_tpi",
-    ) as mock_create_tpi:
-        mock_create_tpi.return_value = True
+    ) as mock_create_tpi, mock.patch(
+        "src.handlers.router.find_coordinates_end_of_highway",
+    ) as mock_coor_end:
+        mock_coor_end.return_value = 37.07, 54.05
         result = await client.post(
             url=os.getenv("TEST_URL_CREATE_TPI"),
-            json=create_tpi_fix,
+            json=request_tpi_without_schemas,
             headers=headers,
         )
         assert result.status_code == 201
@@ -41,22 +42,26 @@ async def test_bad_create_tpi():
         "src.handlers.router.request_auth_create_tpi",
     ) as mock_bad_create_tpi:
         mock_bad_create_tpi.return_value = False
-        result = await client.post(
-            url=os.getenv("TEST_URL_CREATE_TPI"),
-            json=create_tpi_fix,
-            headers=headers_bad,
-        )
-        assert result.status_code == 401
-        assert result.json() == {
-            "message": "check Authorization token, and try again",
-        }
-        assert mock_bad_create_tpi.call_count == 1
+        with mock.patch(
+            "src.handlers.router.find_coordinates_end_of_highway",
+        ) as mock_coor_end:
+            mock_coor_end.return_value = 37.07, 54.05
+            result = await client.post(
+                url=os.getenv("TEST_URL_CREATE_TPI"),
+                json=request_tpi_without_schemas,
+                headers=headers_bad,
+            )
+            assert result.status_code == 401
+            assert result.json() == {
+                "message": "check Authorization token, and try again",
+            }
+            assert mock_bad_create_tpi.call_count == 1
 
 
 async def test_bad_create_tpi_without_headers():
     result = await client.post(
         url=os.getenv("TEST_URL_CREATE_TPI"),
-        json=create_tpi_fix,
+        json=request_tpi_without_schemas,
     )
     assert result.status_code == 401
     assert result.json() == {
@@ -72,7 +77,7 @@ async def test_collect_road_data():
         return_value={
             "weather": response_api,
             "recommended_information": chat_gpt_response["message"],
-            "road_traffic_status": traffic_jams_good,
+            "traffic_jams_status": traffic_jams_good,
         }
     )
     with mock.patch(
@@ -81,26 +86,16 @@ async def test_collect_road_data():
     ), mock.patch(
         "src.handlers.router.summing_result_road", mock_return_summing_result_road
     ):
-        query_params = {
-            "start": {
-                "lat": start_data["lat"],
-                "lon": start_data["lon"],
-            },
-            "stop": {
-                "lat": stop_data["lat"],
-                "lon": stop_data["lon"],
-            },
-        }
         result = await client.post(
             url=os.getenv("TEST_URL_TRAFFIC"),
-            json=query_params,
+            json=request_tpi_without_schemas,
             headers=headers,
         )
         assert result.status_code == 200
         assert result.json() == {
             "weather": response_api,
             "recommended_information": chat_gpt_response["message"],
-            "road_traffic_status": traffic_jams_good,
+            "traffic_jams_status": traffic_jams_good,
         }
 
 
@@ -108,42 +103,25 @@ async def test_collect_road_data_failure():
     with mock.patch(
         "src.handlers.router.send_header_to_auth_service",
     ) as response_auth:
-        response_auth.return_value = False
-        query_params = {
-            "start": {
-                "lat": start_data["lat"],
-                "lon": start_data["lon"],
-            },
-            "stop": {
-                "lat": stop_data["lat"],
-                "lon": stop_data["lon"],
-            },
+        response_auth.return_value = {
+            "detail": "detail",
+            "status_code": status.HTTP_401_UNAUTHORIZED,
         }
         result = await client.post(
             url=os.getenv("TEST_URL_TRAFFIC"),
-            json=query_params,
+            json=request_tpi_without_schemas,
             headers=headers,
         )
         assert result.status_code == 401
         assert result.json() == {
-            "message": "check Authorization token, and try again",
+            "message": "detail",
         }
 
 
 async def test_collect_road_data_without_headers():
-    query_params = {
-        "start": {
-            "lat": start_data["lat"],
-            "lon": start_data["lon"],
-        },
-        "stop": {
-            "lat": stop_data["lat"],
-            "lon": stop_data["lon"],
-        },
-    }
     result = await client.post(
         url=os.getenv("TEST_URL_TRAFFIC"),
-        json=query_params,
+        json=request_tpi_without_schemas,
     )
     assert result.status_code == 401
     assert result.json()["message"] == "check Authorization token, and try again"

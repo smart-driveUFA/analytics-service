@@ -1,21 +1,20 @@
+import os
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from starlette import status
 
 from src.analysis_road.collect_data import summing_result_road
 from src.auth.check_auth import send_header_to_auth_service
 from src.auth.crud_tpi import request_auth_create_tpi
-from src.handlers.schemas import CoordinatesBetweenTPI
-from src.open_ai.open_ai_response import (
-    _convert_data_to_message_openai,
-    response_openai,
-)
+from src.handlers.schemas import TPI
+from src.open_ai.open_ai_response import response_openai
 from src.utils import Url
 from tests.fixture import (
-    coor_data,
+    chat_gpt_response,
     headers,
     message_for_chatgpt,
+    request_tpi_schemas,
     response_api,
     result_chatgpt,
     start_data,
@@ -27,10 +26,7 @@ from tests.fixture import (
 async def test_request_auth_create_tpi(mock_requests):
     mock_requests.post.return_value.status_code = status.HTTP_201_CREATED
     response = await request_auth_create_tpi(
-        start_data["lat"],
-        start_data["lon"],
-        "Volgograd",
-        headers,
+        request_tpi_schemas, headers["Authorization"], 55.02, 22.201
     )
     assert response is True
 
@@ -39,26 +35,25 @@ async def test_request_auth_create_tpi(mock_requests):
 async def test_request_auth_create_tpi_bad(mock_requests):
     mock_requests.post.return_value.status_code = status.HTTP_401_UNAUTHORIZED
     response = await request_auth_create_tpi(
-        start_data["lat"],
-        start_data["lon"],
-        "Volgograd",
-        headers,
+        request_tpi_schemas, headers["Authorization"], 55.02, 22.201
     )
     assert response is False
 
 
 @patch("src.auth.check_auth.requests")
 async def test_send_header_to_auth_service(mock_requests):
-    mock_requests.post.return_value.status_code = status.HTTP_200_OK
-    response = await send_header_to_auth_service(
-        headers, start_data["lat"], start_data["lon"]
-    )
-    assert response is True
+    mock_response = {"lat_end": 55.37, "lon_end": 58.25}
+    mock_requests.get.return_value.status_code = status.HTTP_200_OK
+    mock_requests.get.return_value.json = Mock(return_value=mock_response)
+    response = await send_header_to_auth_service(headers, request_tpi_schemas)
+    assert response == {"lat_end": 55.37, "lon_end": 58.25}
 
 
 async def test__convert_data_to_message_openai():
+    from src.open_ai.open_ai_response import _convert_data_to_message_openai
+
     result = await _convert_data_to_message_openai(response_api)
-    assert result == message_for_chatgpt
+    assert result == chat_gpt_response["message"]
 
 
 async def test_response_openai():
@@ -99,6 +94,14 @@ async def test_url_chat_gpt():
     assert url == "https://api.openai.com/v1/chat/completions"
 
 
+async def test_url_2gis():
+    url = Url().to_gis
+    assert (
+        url
+        == f"http://routing.api.2gis.com/routing/7.0.0/global?key={os.getenv('KEY_2GIS')}"
+    )
+
+
 async def test_summing_result_road():
     with patch(
         "src.analysis_road.collect_data.processed_data_weather",
@@ -109,10 +112,10 @@ async def test_summing_result_road():
         "src.analysis_road.collect_data.status_road_speed",
         return_value=traffic_jams_good,
     ):
-        coor = CoordinatesBetweenTPI.model_validate(coor_data)
-        result = await summing_result_road(coor)
+        coor = TPI.model_validate(request_tpi_schemas)
+        result = await summing_result_road(coor, 0.0, 0.0)
         assert result == {
             "weather": response_api,
             "recommended_information": result_chatgpt,
-            "road_traffic_status": traffic_jams_good,
+            "traffic_jams_status": traffic_jams_good,
         }

@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 import requests
+from requests import Timeout
 
 from src.handlers.schemas import TPI
 
@@ -26,12 +27,12 @@ async def send_header_to_auth_service(token: str, route_coor: TPI) -> dict[str, 
     }
     try:
         response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
-    except requests.ConnectionError:
+    except ConnectionError:
         return {
             "lat_end": None,
             "lon_end": None,
         }
-    except requests.Timeout:
+    except Timeout:
         return {
             "lat_end": None,
             "lon_end": None,
