@@ -56,7 +56,7 @@ async def is_valid_city_name(name: str) -> Union[str, None]:
     :param name: name of city;
     :return: str if city exists in set city russia or none;
     """
-    valid_letter = "абвгдежзийклмнопрстуфхцчшщъыьэю "
+    valid_letter = "абвгдежзийклмнопрстуфхцчшщъыьэюя "
     name = name.strip().lower()
     if len(name) <= 1:
         return None
