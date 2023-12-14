@@ -57,15 +57,13 @@ async def is_valid_city_name(name: str) -> Union[str, None]:
     :return: str if city exists in set city russia or none;
     """
     valid_letter = "абвгдежзийклмнопрстуфхцчшщъыьэю "
-    name = name.strip()
+    name = name.strip().lower()
     if len(name) <= 1:
         return None
-    city = name.lower()
-    for el in city:
+    for el in name:
         if el not in valid_letter:
             return None
-    if name[0].islower():
-        name = name.capitalize()
+    name = name.capitalize()
     if name.count(" ") > 1:
         return None
     if name in city_russian_set:
