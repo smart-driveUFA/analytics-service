@@ -21,7 +21,7 @@ async def find_coordinates_end_of_highway(
     :param end: name city of end or start highway;
     :return: tuple (lat, lon) of end point;
     """
-    name_city = await convert_name_to_valid_city(end)
+    name_city = await is_valid_city_name(end)
     token_dadata = os.getenv("DADATA_KEY")
     secret_dadata = os.getenv("DADATA_SECRET_KEY")
     if token_dadata and secret_dadata:
@@ -50,7 +50,7 @@ async def find_coordinates_end_of_highway(
         raise VariableError("provide token_data or secret_dadata")
 
 
-async def convert_name_to_valid_city(name: str) -> Union[str, None]:
+async def is_valid_city_name(name: str) -> Union[str, None]:
     """
     check string to valid and exist in set city russia;
     :param name: name of city;
