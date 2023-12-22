@@ -10,7 +10,9 @@ services:
     environment:
       - MONGO_DB=${MONGO_DB}
       - AUTH_CHECK_TOKEN_URL=${AUTH_CHECK_TOKEN_URL}
-      - AUTH_CREATE_TPI_URL=${AUTH_CREATE_TPI_URL}
+      - AUTH_CHECK_REQUEST_COUNT=${AUTH_CHECK_REQUEST_COUNT}
+      - AUTH_TPI_URL=${AUTH_TPI_URL}
+      - AUTH_GET_COOR=${AUTH_GET_COOR}
 
     ports:
       - '8080:8080'
@@ -23,7 +25,7 @@ services:
       - mongodb
 
   mongodb:
-    container_name: "mongodb"
+    container_name: mongodb
     image: mongo:7
     env_file:
       - .env
@@ -32,6 +34,15 @@ services:
     networks:
       - common-network
 
+  redis:
+    container_name: redis
+    image: redis:7
+    env_file:
+      - .env
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    networks:
+      - common-network
 
 networks:
   common-network:

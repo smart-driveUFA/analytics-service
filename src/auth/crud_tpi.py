@@ -1,33 +1,39 @@
 import os
+from typing import Union
 
 import requests
+from requests import Timeout
+
+from src.handlers.schemas import TPI
 
 
 async def request_auth_create_tpi(
-    lat: float,
-    lon: float,
-    direction: str,
+    tpi_data: TPI,
     token: str,
-):
+    end_lat: float,
+    end_lon: float,
+) -> Union[bool, dict]:
     """
-    Send request to auth_service for authentication headers from request and request for create tpi
-    :param lat: tpi's latitude
-    :param lon: tpi's longitude
-    :param direction: direction of movement
-    :param token: Authorization Bearer
-    :return: response message auth_service and status code
+    making request for creation tpi;
+    :param end_lon: longitude of end point;
+    :param end_lat: latitude of end point;
+    :param tpi_data: schema of tpi's params;
+    :param token: Authorization Bearer;
+    :return: create verification status;
     """
-    data = {
-        "latitude": lat,
-        "longitude": lon,
-        "direction": direction,
-    }
     headers = {
         "Authorization": token,
     }
-    url = os.getenv("AUTH_CREATE_TPI_URL")
-    response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
-    return {
-        "message": response.json(),
-        "status": response.status_code,
-    }
+    url = os.getenv("AUTH_TPI_URL")
+    try:
+        data = tpi_data.model_dump()
+        data["lat_end"] = end_lat
+        data["lon_end"] = end_lon
+        response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
+        if response.status_code == 400:
+            return response.json()
+        return response.status_code == 201
+    except ConnectionError:
+        return False
+    except Timeout:
+        return False

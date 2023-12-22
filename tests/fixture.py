@@ -1,8 +1,11 @@
-data = {
-    "lat": 55.75396,
-    "lon": 37.620393,
-    "count": 1,
-}
+from starlette import status
+from starlette.responses import JSONResponse
+
+from src.handlers.schemas import TPI
+
+start_data = {"lat": 54.4334, "lon": 55.5651}
+
+stop_data = {"lat": 54.7431, "lon": 55.9678}
 
 response_yandex_example = {
     "now": 1698234863,
@@ -265,4 +268,85 @@ headers_bad = {
     "_Pw9fLsSwcRx4Ie3fe0L7EHC7Vz9u6MkXlpBSu7o_rI",
 }
 
-create_tpi_fix = {"lat": 55.0, "lon": 37.0, "direction": "Вологда-Москва", "count": 1}
+request_tpi_schemas = TPI(
+    lat_start=55.0,
+    lon_start=37.0,
+    start="Вологда",
+    end="Москва",
+    highway="m8",
+)
+
+request_tpi_without_schemas = {
+    "lat_start": 55.0,
+    "lon_start": 37.0,
+    "start": "Вологда",
+    "end": "Москва",
+    "highway": "m8",
+}
+mock_response_bad = {
+    "message": {
+        "detail": "Недействительный токен доступа",
+    },
+    "status": status.HTTP_403_FORBIDDEN,
+}
+
+chat_gpt_response = {
+    "message": "Из приведенных данных проведи анализ погодных условий и сделай вывод о возможности гололеда и других не благоприятных условиях для водителя (туман и другие), информация должна быть краткой и понятной, если есть опасные погодные условия написать их капсом. На основе этих данных дай информацию и рекомендации для водителей двигающихся по трассе, информация должна быть краткой и понятной. На основе анализа погоды так же составь сообщения которые требуется вывести на табло переменной информации в соответствии с гостом ГОСТ Р 56351—201 и ГОСТ Р 56350—2015 Российской Федерации. city: Москва temperature: 0 feels_like: -4 condition: cloudy pressure_mm: 750 pressure_pa: 999 humidity: 52 wind_gust: 3.9 "
+}
+
+auth_service_response = {
+    "lat_end": 55.37,
+    "lon_end": 54.21,
+}
+
+auth_service_response_failure = False
+
+message_for_chatgpt = (
+    "Из приведенных данных проведи анализ погодных условий и"
+    " сделай вывод о возможности гололеда и других не благоприятных"
+    " условиях для водителя (туман и другие), информация должна быть краткой и понятной,"
+    " если есть опасные погодные условия написать их капсом."
+    " На основе этих данных дай информацию и"
+    " рекомендации для водителей двигающихся по трассе, информация должна быть краткой и понятной."
+    " На основе анализа погоды так же составь сообщения "
+    "которые требуется вывести на табло переменной информации"
+    "в соответсвии с гостом ГОСТ Р 56351—201 и ГОСТ Р 56350—2015 Российской Федерации."
+)
+
+result_chatgpt = (
+    "city: Москва temperature: 0 feels_like: -4 condition: cloudy pressure_mm: 750"
+    " pressure_pa: 999 humidity: 52 wind_gust: 3.9"
+)
+result_chatgpt_status_code_200 = JSONResponse(
+    status_code=status.HTTP_200_OK,
+    content=chat_gpt_response["message"],
+)
+
+result_chatgpt_bad = JSONResponse(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    content="error",
+)
+
+result_chatgpt_status_code_400 = JSONResponse(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    content="error",
+)
+
+traffic_jams_good = {"duration": 5450, "length": 5400, "status_of_jams": 4}
+traffic_jams = {"duration": 5450, "length": 5400}
+for_2gis_req = {
+    "lat_start": 55.0,
+    "lon_start": 37.0,
+    "lat_end": 55.37,
+    "lon_end": 54.21,
+}
+
+response_2gis_api = {
+    "result": [{"duration": 5450, "length": 5400, "status_of_jams": 4}],
+    "status": "OK",
+}
+
+response_2gis_api_bad_status = {
+    "result": [{"duration": 5450, "length": 5400, "status_of_jams": 4}],
+    "status": "Bad",
+}

@@ -1,3 +1,5 @@
+from typing import Any
+
 from bson import ObjectId
 from pydantic import BaseModel, Field, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
@@ -10,7 +12,7 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v: ObjectId):
+    def validate(cls, v: ObjectId, _: Any):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)

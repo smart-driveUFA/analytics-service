@@ -1,49 +1,45 @@
 import os
 from typing import Union
 
-from aiohttp import ClientSession
-from fastapi import APIRouter, status
+import requests
+from fastapi import status
 
-from src.mongodb.mongo import client_mongo
+from src.database.mongo import client_mongo
+from src.database.redis import redis_client
 from src.utils import Url
-
-router = APIRouter(
-    prefix="/yandex_api",
-    tags=["yandex_api"],
-)
 
 
 async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, None]:
     """
-    Make request to yandex.weather API
-    :param lat: latitude of object
-    :param lon: longitude of object
-    :param count: quantity of days in request
-    :return: yandex weather or None
+    Make request to yandex weather API;
+    :param lat: latitude of an object;
+    :param lon: longitude of an object;
+    :param count: quantity of days in request;
+    :return: yandex weather or None'
     """
     url = Url(lat, lon, count).weather
     headers = {
         "X-Yandex-API-Key": str(os.getenv("WEATHER_YANDEX")),
     }
-    async with ClientSession() as session:
-        response = await session.get(url, headers=headers)
-        response_json = await response.json()
-        await session.close()
-    if (
-        response.status == status.HTTP_200_OK
-        and response_json["geo_object"]
-        and response_json["fact"]
-    ):
+    try:
+        response = requests.get(url=url, headers=headers)  # noqa: S113
+    except requests.Timeout:
+        return None
+    except requests.ConnectionError:
+        return None
+    if response.status_code == status.HTTP_200_OK:
+        response_json = response.json()
         await client_mongo["yandex"].insert_one(response_json)
+        response_json.pop("_id", None)
         return response_json
     return None
 
 
 async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
     """
-    Make ResponseAPI data from yandex.weather api
-    :param yandex: dict yandex.weather api
-    :return: dict ResponseAPI
+    Make a dict result for a client from yandex weather api;
+    :param yandex: dict yandex weather api;
+    :return: dict weather;
     """
     geo_object: dict = yandex["geo_object"]["locality"]
     fact: dict = yandex["fact"]
@@ -57,15 +53,29 @@ async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
         "humidity": fact["humidity"],
         "wind_gust": fact["wind_gust"],
     }
-    await client_mongo["response_weather"].insert_one(result)
+    client_mongo["response_weather"].insert_one(result)
+    result.pop("_id", None)
     return result
 
 
 async def processed_data_weather(
-    lat: float, lon: float, count: int = 1
+    lat: float,
+    lon: float,
 ) -> Union[dict, None]:
-    weather = await _get_weather(lat, lon, count)
+    """
+    if not cache, call _get_weather and save it to redis;
+    :param lat: latitude of location;
+    :param lon: longitude of location;
+    :return: dict _convert_yandex_weather_to_dict;
+    """
+    _name = f"yandex weather {lat}-{lon}"
+    cached_data = await redis_client.get(name=_name)
+    if cached_data:
+        return await _convert_yandex_weather_to_dict(cached_data)
+    weather = await _get_weather(lat, lon)
     if weather:
+        weather.pop("_id", None)
+        await redis_client.set(name=_name, value=weather)
         return await _convert_yandex_weather_to_dict(weather)
     else:
         return None
