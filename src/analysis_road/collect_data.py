@@ -37,7 +37,6 @@ async def summing_result_road(
         "recommended_information": message,
         "traffic_jams_status": traffic_jams_status,
     }
-
-    client_mongo["summing_result"].insert_one(analysis_data)
+    await client_mongo["summing_result"].insert_one(analysis_data)
     analysis_data.pop("_id", None)
     return analysis_data

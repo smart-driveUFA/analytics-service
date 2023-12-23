@@ -1,18 +1,17 @@
 import os
 from math import atan2, degrees
-from typing import Union
+from typing import Tuple, Union
 
 import httpx
 from dadata import DadataAsync
 from geopy import Point, distance
 
-from src.exceptions.custom_exceptions import VariableError
 from src.utils import city_russian_set
 
 
 async def find_coordinates_end_of_highway(
     lat: float, lon: float, end: str, km: int = 50
-):
+) -> Union[Tuple[float, float], Tuple[None, None]]:
     """
     computing coordinates end point route in 50 km;
     :param km: distance from tpi to end point route;
@@ -31,23 +30,30 @@ async def find_coordinates_end_of_highway(
                     coordinates_end = await dadata.clean(
                         name="address", source=name_city
                     )
-                    end_point = {
-                        "lat": float(coordinates_end["geo_lat"]),
-                        "lon": float(coordinates_end["geo_lon"]),
-                    }
-                    angle = degrees(
-                        atan2(end_point["lat"] - lat, end_point["lon"] - lon)
-                    )
-                    destination_point = distance.geodesic(kilometers=km).destination(
-                        Point(latitude=lat, longitude=lon), angle
-                    )
-                    return destination_point.latitude, destination_point.longitude
+                    if (
+                        isinstance(coordinates_end, dict)
+                        and coordinates_end["geo_lat"]
+                        and coordinates_end["geo_lon"]
+                    ):
+                        end_point = {
+                            "lat": float(coordinates_end["geo_lat"]),
+                            "lon": float(coordinates_end["geo_lon"]),
+                        }
+                        angle = degrees(
+                            atan2(end_point["lat"] - lat, end_point["lon"] - lon)
+                        )
+                        destination_point = distance.geodesic(
+                            kilometers=km
+                        ).destination(Point(latitude=lat, longitude=lon), angle)
+                        return (
+                            destination_point.latitude,
+                            destination_point.longitude,
+                        )
             except httpx.HTTPStatusError:
                 return None, None
         else:
             return None, None
-    else:
-        raise VariableError("provide token_data or secret_dadata")
+    return None, None
 
 
 async def is_valid_city_name(name: str) -> Union[str, None]:

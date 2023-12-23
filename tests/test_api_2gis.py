@@ -97,7 +97,7 @@ async def test__count_time_route_bad_type():
 
     response = await _count_time_route(
         {
-            "duration": "",
+            "duration": "",  # type: ignore[only for test]
             "length": 123,
         }
     )

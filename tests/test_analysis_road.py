@@ -15,7 +15,8 @@ async def test_summing_result_road():
         "src.analysis_road.collect_data.processed_data_weather",
         return_value=response_api,
     ), patch(
-        "src.analysis_road.collect_data.response_openai", return_value=result_chatgpt
+        "src.analysis_road.collect_data.response_openai",
+        return_value=result_chatgpt,
     ), patch(
         "src.analysis_road.collect_data.status_road_speed",
         return_value=traffic_jams_good,

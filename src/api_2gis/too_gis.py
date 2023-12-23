@@ -1,8 +1,8 @@
 from typing import Dict, Union
 
 import requests
+from fastapi import status
 from requests import Timeout
-from starlette import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
@@ -50,7 +50,7 @@ async def _send_request_2gis(
     match response.status_code:
         case status.HTTP_200_OK:
             if response.json()["status"] == "OK":
-                client_mongo["response_2gis"].insert_one(response.json())
+                await client_mongo["response_2gis"].insert_one(response.json())
                 return response.json()["result"][0]
             return None
         case _:
