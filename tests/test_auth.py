@@ -30,5 +30,7 @@ async def test_send_header_to_auth_service(mock_requests):
     mock_response = {"lat_end": 55.37, "lon_end": 58.25}
     mock_requests.get.return_value.status_code = status.HTTP_200_OK
     mock_requests.get.return_value.json = Mock(return_value=mock_response)
-    response = await send_header_to_auth_service(headers, request_tpi_schemas)
+    response = await send_header_to_auth_service(
+        headers["Authorization"], request_tpi_schemas
+    )
     assert response == {"lat_end": 55.37, "lon_end": 58.25}
