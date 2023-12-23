@@ -1,8 +1,10 @@
+import json
 import os
 from typing import Union
 
 import requests
-from starlette import status
+from aioredis.connection import EncodableT
+from fastapi import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
@@ -37,7 +39,7 @@ async def _send_request_openai_chat_completion(message: str) -> Union[dict, None
             return None
 
 
-async def _convert_data_to_message_openai(weather: dict) -> str:
+async def _convert_data_to_message_openai(weather: dict) -> Union[str, None]:
     """
     Create a task to chatgpt;
     :param weather: weather of a road with coordinates;
@@ -75,7 +77,10 @@ async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, 
     message = await _convert_data_to_message_openai(weather)
     if message:
         response_chatgpt = await _send_request_openai_chat_completion(message)
-        if response_chatgpt:
-            await redis_client.set(name=name_cached_data, value=response_chatgpt)
-            return response_chatgpt
+        if not isinstance(response_chatgpt, EncodableT):
+            convert_to_encodable = json.dumps(response_chatgpt)
+        else:
+            convert_to_encodable = response_chatgpt
+        await redis_client.set(name=name_cached_data, value=convert_to_encodable)
+        return response_chatgpt
     return None

@@ -17,13 +17,17 @@ async def send_result_auth(
     headers = {
         "Authorization": token,
     }
+    url = os.getenv("AUTH_CHECK_REQUEST_COUNT")
     processed_data["lat"] = lat
     processed_data["lon"] = lon
     if isinstance(processed_data["recommended_information"], dict):
         processed_data["recommended_information"].pop("_id", None)
     if isinstance(processed_data["weather"], dict):
         processed_data["weather"].pop("_id", None)
-    async with ClientSession() as session, session.post(
-        os.getenv("AUTH_CHECK_REQUEST_COUNT"), json=processed_data, headers=headers
-    ) as resp:
-        resp.close()
+    if isinstance(url, str):
+        async with ClientSession() as session, session.post(
+            url,
+            json=processed_data,
+            headers=headers,
+        ) as resp:
+            resp.close()

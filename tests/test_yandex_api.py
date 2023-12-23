@@ -1,8 +1,7 @@
 from unittest.mock import AsyncMock, Mock, patch
 
-import requests
 from dirty_equals import IsFloat, IsInt, IsStr
-from requests import Timeout
+from requests.exceptions import ConnectionError, Timeout
 from starlette import status
 
 from src.yandex_api.weather_api import processed_data_weather
@@ -52,7 +51,8 @@ async def test__get_weather_timeout_error():
 
 async def test__get_weather_connection_error():
     with patch(
-        "src.api_2gis.too_gis.requests.get", side_effect=requests.ConnectionError
+        "src.api_2gis.too_gis.requests.get",
+        side_effect=ConnectionError,
     ):
         from src.yandex_api.weather_api import _get_weather
 

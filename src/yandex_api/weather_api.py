@@ -1,7 +1,9 @@
+import json
 import os
 from typing import Union
 
 import requests
+from aioredis.connection import EncodableT
 from fastapi import status
 
 from src.database.mongo import client_mongo
@@ -9,7 +11,7 @@ from src.database.redis import redis_client
 from src.utils import Url
 
 
-async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, None]:
+async def _get_weather(lat: float, lon: float, count: int = 1) -> dict:
     """
     Make request to yandex weather API;
     :param lat: latitude of an object;
@@ -24,15 +26,15 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> Union[dict, No
     try:
         response = requests.get(url=url, headers=headers)  # noqa: S113
     except requests.Timeout:
-        return None
+        return {}
     except requests.ConnectionError:
-        return None
+        return {}
     if response.status_code == status.HTTP_200_OK:
         response_json = response.json()
         await client_mongo["yandex"].insert_one(response_json)
         response_json.pop("_id", None)
         return response_json
-    return None
+    return {}
 
 
 async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
@@ -41,21 +43,24 @@ async def _convert_yandex_weather_to_dict(yandex: dict) -> dict:
     :param yandex: dict yandex weather api;
     :return: dict weather;
     """
-    geo_object: dict = yandex["geo_object"]["locality"]
-    fact: dict = yandex["fact"]
-    result: dict = {
-        "city": geo_object["name"],
-        "temperature": fact["temp"],
-        "feels_like": fact["feels_like"],
-        "condition": fact["condition"],
-        "pressure_mm": fact["pressure_mm"],
-        "pressure_pa": fact["pressure_pa"],
-        "humidity": fact["humidity"],
-        "wind_gust": fact["wind_gust"],
-    }
-    client_mongo["response_weather"].insert_one(result)
-    result.pop("_id", None)
-    return result
+    if isinstance(yandex, dict):
+        geo_object: dict = yandex["geo_object"]["locality"]
+        fact: dict = yandex["fact"]
+        result: dict = {
+            "city": geo_object["name"],
+            "temperature": fact["temp"],
+            "feels_like": fact["feels_like"],
+            "condition": fact["condition"],
+            "pressure_mm": fact["pressure_mm"],
+            "pressure_pa": fact["pressure_pa"],
+            "humidity": fact["humidity"],
+            "wind_gust": fact["wind_gust"],
+        }
+        await client_mongo["response_weather"].insert_one(result)
+        result.pop("_id", None)
+        return result
+    else:
+        return {}
 
 
 async def processed_data_weather(
@@ -73,9 +78,12 @@ async def processed_data_weather(
     if cached_data:
         return await _convert_yandex_weather_to_dict(cached_data)
     weather = await _get_weather(lat, lon)
-    if weather:
-        weather.pop("_id", None)
-        await redis_client.set(name=_name, value=weather)
-        return await _convert_yandex_weather_to_dict(weather)
+    if not isinstance(weather, EncodableT):
+        if isinstance(weather, dict) and weather["_id"]:
+            weather.pop("_id")
+        convert_to_encodable = json.dumps(weather)
     else:
-        return None
+        convert_to_encodable = weather
+    await redis_client.set(name=_name, value=convert_to_encodable)
+    result = await _convert_yandex_weather_to_dict(weather)
+    return result if result else None

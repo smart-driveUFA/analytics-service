@@ -25,15 +25,17 @@ async def request_auth_create_tpi(
         "Authorization": token,
     }
     url = os.getenv("AUTH_TPI_URL")
-    try:
-        data = tpi_data.model_dump()
-        data["lat_end"] = end_lat
-        data["lon_end"] = end_lon
-        response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
-        if response.status_code == 400:
-            return response.json()
-        return response.status_code == 201
-    except ConnectionError:
-        return False
-    except Timeout:
-        return False
+    if isinstance(url, str):
+        try:
+            data = tpi_data.model_dump()
+            data["lat_end"] = end_lat
+            data["lon_end"] = end_lon
+            response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
+            if response.status_code == 400:
+                return response.json()
+            return response.status_code == 201
+        except ConnectionError:
+            return False
+        except Timeout:
+            return False
+    raise TypeError("url from .enviroment dont find")

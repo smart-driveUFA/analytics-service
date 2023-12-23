@@ -25,21 +25,26 @@ async def send_header_to_auth_service(token: str, route_coor: TPI) -> dict[str, 
         "end": route_coor.end,
         "highway": route_coor.highway,
     }
-    try:
-        response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
-    except ConnectionError:
+    if isinstance(url, str):
+        try:
+            response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
+        except ConnectionError:
+            return {
+                "lat_end": None,
+                "lon_end": None,
+            }
+        except Timeout:
+            return {
+                "lat_end": None,
+                "lon_end": None,
+            }
+        if response.status_code == 200:
+            return {
+                "lat_end": response.json()["lat_end"],
+                "lon_end": response.json()["lon_end"],
+            }
         return {
-            "lat_end": None,
-            "lon_end": None,
+            "detail": response.json()["detail"],
+            "status_code": response.status_code,
         }
-    except Timeout:
-        return {
-            "lat_end": None,
-            "lon_end": None,
-        }
-    if response.status_code == 200:
-        return {
-            "lat_end": response.json()["lat_end"],
-            "lon_end": response.json()["lon_end"],
-        }
-    return {"detail": response.json()["detail"], "status_code": response.status_code}
+    raise TypeError("url from .enviroment dont find")

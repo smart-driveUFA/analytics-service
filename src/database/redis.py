@@ -1,9 +1,8 @@
 import json
 import os
-from typing import Union
 
 import aioredis
-from aioredis.client import AnyFieldT, ExpiryT, KeyT
+from aioredis.client import ExpiryT, KeyT
 from aioredis.connection import EncodableT
 
 
@@ -22,10 +21,13 @@ class Redis:
         return None
 
     async def set(
-        self, name: KeyT, value: Union[AnyFieldT, EncodableT], lifetime: ExpiryT = 120
+        self,
+        name: KeyT,
+        value: EncodableT,
+        lifetime: ExpiryT = 120,
     ):
-        a = json.dumps(value)
-        await self.redis_client.set(name=name, value=a, ex=lifetime)
+        value = json.dumps(value)
+        await self.redis_client.set(name=name, value=value, ex=lifetime)
 
     async def delete(self, name: KeyT):
         await self.redis_client.delete(name)
