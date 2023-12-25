@@ -32,12 +32,8 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
         (
             coordinates_end_lat,
             coordinates_end_lon,
-        ) = await find_coordinates_end_of_highway(
-            tpi_data.lat_start, tpi_data.lon_start, tpi_data.end
-        )
-        if isinstance(coordinates_end_lon, (int, float)) and isinstance(
-            coordinates_end_lat, (int, float)
-        ):
+        ) = await find_coordinates_end_of_highway(tpi_data.lat_start, tpi_data.lon_start, tpi_data.end)
+        if isinstance(coordinates_end_lon, (int, float)) and isinstance(coordinates_end_lat, (int, float)):
             tpi_response = await request_auth_create_tpi(
                 tpi_data,
                 request.headers["Authorization"],
@@ -65,9 +61,7 @@ async def create_tpi(request: Request, tpi_data: TPI) -> JSONResponse:
         else:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "error": "something is going wrong. describe the problem to us"
-                },
+                content={"error": "something is going wrong. describe the problem to us"},
             )
     else:
         return JSONResponse(
@@ -94,9 +88,7 @@ async def collect_road_data(
         token = request.headers["Authorization"]
         coor_end_point = await send_header_to_auth_service(token, route_coor)
         if coor_end_point.get("lat_end", None) and coor_end_point.get("lon_end", None):
-            result_process = await summing_result_road(
-                route_coor, coor_end_point["lat_end"], coor_end_point["lon_end"]
-            )
+            result_process = await summing_result_road(route_coor, coor_end_point["lat_end"], coor_end_point["lon_end"])
             result_process.pop("_id", None)
             await send_result_auth(
                 result_process,

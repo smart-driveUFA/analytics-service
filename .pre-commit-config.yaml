@@ -11,10 +11,10 @@ repos:
     -   id: check-merge-conflict  # проверяет файлы, содержащие конфликтные строки слияния.
     -   id: end-of-file-fixer  # добавляет пустую строку в конце файла
 
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.342
-    hooks:
-    - id: pyright
+#  - repo: https://github.com/RobertCraigie/pyright-python
+#    rev: v1.1.342
+#    hooks:
+#    - id: pyright
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
