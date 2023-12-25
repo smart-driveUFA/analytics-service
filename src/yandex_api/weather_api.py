@@ -79,7 +79,7 @@ async def processed_data_weather(
         return await _convert_yandex_weather_to_dict(cached_data)
     weather = await _get_weather(lat, lon)
     if not isinstance(weather, EncodableT):
-        if isinstance(weather, dict) and weather["_id"]:
+        if "_id" in weather:
             weather.pop("_id")
         convert_to_encodable = json.dumps(weather)
     else:
