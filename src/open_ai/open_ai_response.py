@@ -32,9 +32,7 @@ async def _send_request_openai_chat_completion(message: str) -> Union[dict, None
     match response.status_code:
         case status.HTTP_200_OK:
             await client_mongo["response_chatgpt"].insert_one(response.json())
-            return (
-                response.json()["choices"][0]["message"]["content"] or response.json()
-            )
+            return response.json()["choices"][0]["message"]["content"] or response.json()
         case _:
             return None
 

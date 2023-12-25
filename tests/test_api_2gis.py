@@ -45,9 +45,7 @@ async def test__send_request_2gis_bad_status(mock_requests):
 @mock.patch("src.api_2gis.too_gis.requests")
 async def test__send_request_2gis_bad_response(mock_requests):
     mock_requests.post.return_value.status_code = status.HTTP_200_OK
-    mock_requests.post.return_value.json = mock.Mock(
-        return_value=response_2gis_api_bad_status
-    )
+    mock_requests.post.return_value.json = mock.Mock(return_value=response_2gis_api_bad_status)
     from src.api_2gis.too_gis import _send_request_2gis
 
     response = await _send_request_2gis(
