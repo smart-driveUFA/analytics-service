@@ -3,9 +3,7 @@ import os
 from aiohttp import ClientSession
 
 
-async def send_result_auth(
-    processed_data: dict, token: str, lat: float, lon: float
-) -> None:
+async def send_result_auth(processed_data: dict, token: str, lat: float, lon: float) -> None:
     """
     make async request to sending result response of service;
     :param processed_data: return data for clients;
