@@ -27,6 +27,6 @@ class TrafficQuantity(BaseModel):
 
 
 class SummingData(BaseModel):
-    weather: Union[ResponseAPI, None]
-    recommended_information: Union[str, None]
-    traffic_jams_status: Union[TrafficQuantity, None]
+    data_yandex: Union[ResponseAPI, None]
+    data_ai: Union[str, None]
+    data_2gis: Union[TrafficQuantity, None]

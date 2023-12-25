@@ -27,9 +27,9 @@ async def summing_result_road(route_coor: TPI, lat_end: float, lon_end: float) -
         traffic_jams_status.pop("_id", None)
 
     analysis_data = {
-        "weather": weather,
-        "recommended_information": message,
-        "traffic_jams_status": traffic_jams_status,
+        "data_yandex": weather,
+        "data_ai": message,
+        "data_2gis": traffic_jams_status,
     }
     await client_mongo["summing_result"].insert_one(analysis_data)
     analysis_data.pop("_id", None)
