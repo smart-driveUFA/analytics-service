@@ -6,12 +6,12 @@ annotated-types==0.6.0
 anyio==3.7.1
 async-timeout==4.0.3
 attrs==23.1.0
-black==23.10.0
 certifi==2023.7.22
 cfgv==3.4.0
 charset-normalizer==3.3.0
 click==8.1.7
 coverage==7.3.2
+dadata==21.10.1
 dirty-equals==0.6.0
 distlib==0.3.7
 distro==1.8.0
@@ -23,6 +23,7 @@ filelock==3.12.4
 frozenlist==1.4.0
 geographiclib==2.0
 geopy==2.4.1
+googlemaps==4.10.0
 h11==0.14.0
 httpcore==0.18.0
 httptools==0.6.1
@@ -77,7 +78,3 @@ virtualenv==20.24.6
 watchfiles==0.21.0
 websockets==11.0.3
 yarl==1.9.2
-
-googlemaps~=4.10.0
-
-dadata~=21.10.1
