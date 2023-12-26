@@ -1,8 +1,9 @@
+import ast
 import os
 from typing import Union
 
 import requests
-from fastapi import status
+from starlette import status
 
 from src.database.mongo import client_mongo
 from src.database.redis import redis_client
@@ -43,7 +44,7 @@ async def _convert_yandex_weather_to_dict(yandex: dict, cache_key: str) -> dict 
     """
     cached_data = await redis_client.get(name=cache_key)
     if cached_data:
-        return cached_data
+        return ast.literal_eval(cached_data)
     if isinstance(yandex, dict):
         geo_object = yandex["geo_object"]["locality"]
         fact = yandex["fact"]
@@ -57,7 +58,7 @@ async def _convert_yandex_weather_to_dict(yandex: dict, cache_key: str) -> dict 
             "humidity": fact["humidity"],
             "wind_gust": fact["wind_gust"],
         }
-        await redis_client.set(name=cache_key, value=result)
+        await redis_client.set(name=cache_key, value=str(result))
         await client_mongo["response_weather"].insert_one(result)
         if "_id" in result:
             result.pop("_id", None)
@@ -78,7 +79,7 @@ async def processed_data_weather(
     cache_key = f"yandex weather {lat}-{lon}"
     cached_data = await redis_client.get(name=cache_key)
     if cached_data:
-        return cached_data
+        return ast.literal_eval(cached_data)
     weather = await _get_weather(lat, lon)
     if weather is not None:
         if "_id" in weather:

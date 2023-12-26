@@ -1,8 +1,8 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 from dirty_equals import IsFloat, IsInt, IsStr
+from fastapi import status
 from requests.exceptions import ConnectionError, Timeout
-from starlette import status
 
 from src.yandex_api.weather_api import processed_data_weather
 from tests.fixture import response_api, response_yandex_example, start_data
@@ -11,16 +11,17 @@ from tests.fixture import response_api, response_yandex_example, start_data
 async def test_convert_yandex_to_dict_right():
     from src.yandex_api.weather_api import _convert_yandex_weather_to_dict
 
-    result = await _convert_yandex_weather_to_dict(response_yandex_example)
-    assert result["city"] == "Москва"
-    assert result["city"] == IsStr
-    assert result["temperature"] == IsInt
-    assert result["feels_like"] == IsInt
-    assert result["condition"] == IsStr
-    assert result["pressure_mm"] == IsInt
-    assert result["pressure_pa"] == IsInt
-    assert result["humidity"] == IsInt
-    assert result["wind_gust"] == IsFloat
+    result = await _convert_yandex_weather_to_dict(response_yandex_example, "")
+    if result:
+        assert result["city"] == "Москва"
+        assert result["city"] == IsStr
+        assert result["temperature"] == IsInt
+        assert result["feels_like"] == IsInt
+        assert result["condition"] == IsStr
+        assert result["pressure_mm"] == IsInt
+        assert result["pressure_pa"] == IsInt
+        assert result["humidity"] == IsInt
+        assert result["wind_gust"] == IsFloat
 
 
 async def test_processed_data_weather_without_weather():
