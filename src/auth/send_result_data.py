@@ -26,12 +26,10 @@ async def send_result_auth(
     }
     url = os.getenv("AUTH_CHECK_REQUEST_COUNT")
     processed_data["tpi"] = tpi
-    if isinstance(processed_data["data_ai"], dict):
-        processed_data["data_ai"].pop("_id", None)
-    if isinstance(processed_data["data_yandex"], dict):
-        processed_data["data_yandex"].pop("_id", None)
-    if isinstance(processed_data["data_2gis"], dict):
-        processed_data["data_2gis"].pop("_id", None)
+    for data_key in ["recommended_information", "weather", "traffic_jams_status"]:
+        if isinstance(processed_data[data_key], dict) and "_id" in processed_data[data_key]:
+            del processed_data[data_key]["_id"]
+
     if isinstance(url, str):
         async with ClientSession() as session, session.post(
                 url,
