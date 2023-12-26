@@ -91,10 +91,7 @@ async def collect_road_data(
             result_process = await summing_result_road(route_coor, coor_end_point["lat_end"], coor_end_point["lon_end"])
             result_process.pop("_id", None)
             await send_result_auth(
-                result_process,
-                token,
-                route_coor.lat_start,
-                route_coor.lon_start,
+                result_process, token, route_coor
             )
             result_process.pop("lat", None)
             result_process.pop("lon", None)
