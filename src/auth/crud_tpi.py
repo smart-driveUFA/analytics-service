@@ -30,7 +30,9 @@ async def request_auth_create_tpi(
             data = tpi_data.model_dump()
             data["lat_end"] = end_lat
             data["lon_end"] = end_lon
-            response = requests.post(url, data=data, headers=headers, timeout=(1, 1))
+            response = requests.post(
+                url, data=data, headers=headers, timeout=(1, 1)
+            )
             if response.status_code == 400:
                 return response.json()
             return response.status_code == 201

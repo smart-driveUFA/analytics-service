@@ -10,7 +10,10 @@ async def test_url_chat_gpt():
 
 async def test_url_2gis():
     url = Url().to_gis
-    assert url == f"http://routing.api.2gis.com/routing/7.0.0/global?key={os.getenv('KEY_2GIS')}"
+    assert (
+        url
+        == f"http://routing.api.2gis.com/routing/7.0.0/global?key={os.getenv('KEY_2GIS')}"
+    )
 
 
 async def test_url_weather():

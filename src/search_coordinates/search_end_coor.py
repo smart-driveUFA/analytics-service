@@ -27,16 +27,26 @@ async def find_coordinates_end_of_highway(
         if isinstance(name_city, str):
             try:
                 async with DadataAsync(token_dadata, secret_dadata) as dadata:
-                    coordinates_end = await dadata.clean(name="address", source=name_city)
-                    if isinstance(coordinates_end, dict) and coordinates_end["geo_lat"] and coordinates_end["geo_lon"]:
+                    coordinates_end = await dadata.clean(
+                        name="address", source=name_city
+                    )
+                    if (
+                        isinstance(coordinates_end, dict)
+                        and coordinates_end["geo_lat"]
+                        and coordinates_end["geo_lon"]
+                    ):
                         end_point = {
                             "lat": float(coordinates_end["geo_lat"]),
                             "lon": float(coordinates_end["geo_lon"]),
                         }
-                        angle = degrees(atan2(end_point["lat"] - lat, end_point["lon"] - lon))
-                        destination_point = distance.geodesic(kilometers=km).destination(
-                            Point(latitude=lat, longitude=lon), angle
+                        angle = degrees(
+                            atan2(
+                                end_point["lat"] - lat, end_point["lon"] - lon
+                            )
                         )
+                        destination_point = distance.geodesic(
+                            kilometers=km
+                        ).destination(Point(latitude=lat, longitude=lon), angle)
                         return (
                             destination_point.latitude,
                             destination_point.longitude,

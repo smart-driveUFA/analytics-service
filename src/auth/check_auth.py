@@ -7,7 +7,9 @@ from requests import Timeout
 from src.handlers.schemas import TPI
 
 
-async def send_header_to_auth_service(token: str, route_coor: TPI) -> dict[str, Any]:
+async def send_header_to_auth_service(
+    token: str, route_coor: TPI
+) -> dict[str, Any]:
     """
     make request for check token and take coordinates of end point route;
     :param route_coor: schema of tpi's params;
@@ -27,7 +29,9 @@ async def send_header_to_auth_service(token: str, route_coor: TPI) -> dict[str, 
     }
     if isinstance(url, str):
         try:
-            response = requests.get(url, headers=headers, data=data, timeout=(1, 1))
+            response = requests.get(
+                url, headers=headers, data=data, timeout=(1, 1)
+            )
         except ConnectionError:
             return {
                 "lat_end": None,

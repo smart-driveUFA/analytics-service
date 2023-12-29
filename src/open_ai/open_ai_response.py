@@ -11,7 +11,9 @@ from src.database.redis import redis_client
 from src.utils import Url
 
 
-async def _send_request_openai_chat_completion(message: str) -> Union[dict, None]:
+async def _send_request_openai_chat_completion(
+    message: str
+) -> Union[dict, None]:
     """
     sends a request to the gpt chat and returns the analyzed data;
     :param message: chat message gpt in the content field;
@@ -32,7 +34,10 @@ async def _send_request_openai_chat_completion(message: str) -> Union[dict, None
     match response.status_code:
         case status.HTTP_200_OK:
             await client_mongo["response_chatgpt"].insert_one(response.json())
-            return response.json()["choices"][0]["message"]["content"] or response.json()
+            return (
+                response.json()["choices"][0]["message"]["content"]
+                or response.json()
+            )
         case _:
             return None
 
@@ -59,7 +64,9 @@ async def _convert_data_to_message_openai(weather: dict) -> Union[str, None]:
     return f"{task} {information_of_road}" if information_of_road else None
 
 
-async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, None]:
+async def response_openai(
+    weather: dict, lat: float, lon: float
+) -> Union[dict, None]:
     """
     if not cache create a message to chatgpt and call _send_request_openai_chat_completion
     and save response to redis;
@@ -79,6 +86,8 @@ async def response_openai(weather: dict, lat: float, lon: float) -> Union[dict, 
             convert_to_encodable = json.dumps(response_chatgpt)
         else:
             convert_to_encodable = response_chatgpt
-        await redis_client.set(name=name_cached_data, value=convert_to_encodable)
+        await redis_client.set(
+            name=name_cached_data, value=convert_to_encodable
+        )
         return response_chatgpt
     return None
