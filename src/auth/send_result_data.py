@@ -1,6 +1,7 @@
 import os
 
 from aiohttp import ClientSession
+
 from src.handlers.schemas import TPI
 
 
@@ -22,18 +23,25 @@ async def send_result_auth(
         "lon_start": route_coor.lon_start,
         "start": route_coor.start,
         "end": route_coor.end,
-        "highway": route_coor.highway
+        "highway": route_coor.highway,
     }
     url = os.getenv("AUTH_CHECK_REQUEST_COUNT")
     processed_data["tpi"] = tpi
-    for data_key in ["recommended_information", "weather", "traffic_jams_status"]:
-        if isinstance(processed_data[data_key], dict) and "_id" in processed_data[data_key]:
+    for data_key in [
+        "recommended_information",
+        "weather",
+        "traffic_jams_status",
+    ]:
+        if (
+            isinstance(processed_data[data_key], dict)
+            and "_id" in processed_data[data_key]
+        ):
             del processed_data[data_key]["_id"]
 
     if isinstance(url, str):
         async with ClientSession() as session, session.post(
-                url,
-                json=processed_data,
-                headers=headers,
+            url,
+            json=processed_data,
+            headers=headers,
         ) as resp:
             resp.close()

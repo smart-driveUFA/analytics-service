@@ -36,7 +36,9 @@ async def _get_weather(lat: float, lon: float, count: int = 1) -> dict | None:
     return None
 
 
-async def _convert_yandex_weather_to_dict(yandex: dict, cache_key: str) -> dict | None:
+async def _convert_yandex_weather_to_dict(
+    yandex: dict, cache_key: str
+) -> dict | None:
     """
     Make a dict result for a client from yandex weather api;
     :param yandex: dict yandex weather api;

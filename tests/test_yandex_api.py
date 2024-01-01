@@ -29,7 +29,9 @@ async def test_processed_data_weather_without_weather():
         return_value=None,
     )
     with patch("src.yandex_api.weather_api._get_weather", mock_get_weather):
-        result = await processed_data_weather(start_data["lat"], start_data["lon"])
+        result = await processed_data_weather(
+            start_data["lat"], start_data["lon"]
+        )
         assert result is None
 
 
@@ -64,7 +66,9 @@ async def test__get_weather_connection_error():
 @patch("src.yandex_api.weather_api.requests")
 async def test__get_weather(mock_requests):
     mock_requests.get.return_value.status_code = status.HTTP_200_OK
-    mock_requests.get.return_value.json = Mock(return_value=response_yandex_example)
+    mock_requests.get.return_value.json = Mock(
+        return_value=response_yandex_example
+    )
     from src.yandex_api.weather_api import _get_weather
 
     result = await _get_weather(start_data["lat"], start_data["lon"])
@@ -76,7 +80,9 @@ async def test_processed_data_weather():
         return_value=response_yandex_example,
     )
     with patch("src.yandex_api.weather_api._get_weather", mock_get_weather):
-        result = await processed_data_weather(start_data["lat"], start_data["lon"])
+        result = await processed_data_weather(
+            start_data["lat"], start_data["lon"]
+        )
         assert result == response_api
 
 
@@ -85,5 +91,7 @@ async def test_processed_data_weather_with_cache():
         return_value=response_yandex_example,
     )
     with patch("src.yandex_api.weather_api.redis_client.get", mock_cache):
-        result = await processed_data_weather(start_data["lat"], start_data["lon"])
+        result = await processed_data_weather(
+            start_data["lat"], start_data["lon"]
+        )
         assert result == response_api

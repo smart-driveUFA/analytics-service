@@ -9,7 +9,9 @@ from src.database.redis import redis_client
 from src.utils import Url
 
 
-async def _send_request_2gis(lat_start: float, lon_start: float, lat_end: float, lon_end: float):
+async def _send_request_2gis(
+    lat_start: float, lon_start: float, lat_end: float, lon_end: float
+):
     """
     make request to 2gis;
     :param lat_start: tpi's latitude;
@@ -90,7 +92,9 @@ async def _count_time_route(params_router: Dict[str, int]) -> Union[int, None]:
         9: range(10, 15),
         10: range(10),
     }
-    if isinstance(params_router["duration"], (int, float)) and isinstance(params_router["length"], (int, float)):
+    if isinstance(params_router["duration"], (int, float)) and isinstance(
+        params_router["length"], (int, float)
+    ):
         km = params_router["length"] / meters_to_kilos
         time = params_router["duration"] / seconds_to_hours
         average_speed = km / time
@@ -106,7 +110,9 @@ async def _count_time_route(params_router: Dict[str, int]) -> Union[int, None]:
         return None
 
 
-async def status_road_speed(lat_start: float, lon_start: float, lat_end: float, lon_end: float):
+async def status_road_speed(
+    lat_start: float, lon_start: float, lat_end: float, lon_end: float
+):
     """
     if cache is empty call _send_request_2gis and _count_time_route and save response to redis;
     :param lat_start: tpi's latitude;
@@ -119,7 +125,9 @@ async def status_road_speed(lat_start: float, lon_start: float, lat_end: float, 
     cached_data = await redis_client.get(name=_key_of_cache)
     if cached_data:
         return cached_data
-    time_and_length = await _send_request_2gis(lat_start, lon_start, lat_end, lon_end)
+    time_and_length = await _send_request_2gis(
+        lat_start, lon_start, lat_end, lon_end
+    )
     if time_and_length:
         status_of_jams = await _count_time_route(time_and_length)
         if isinstance(status_of_jams, (int, float)):

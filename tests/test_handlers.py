@@ -122,7 +122,9 @@ async def test_collect_road_data_without_headers(client: AsyncClient):
         json=request_tpi_without_schemas,
     )
     assert result.status_code == 401
-    assert result.json()["message"] == "check Authorization token, and try again"
+    assert (
+        result.json()["message"] == "check Authorization token, and try again"
+    )
 
 
 async def test_collect_road_data_without_query_params(client: AsyncClient):

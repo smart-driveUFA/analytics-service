@@ -7,7 +7,9 @@ from src.open_ai.open_ai_response import response_openai
 from src.yandex_api.weather_api import processed_data_weather
 
 
-async def summing_result_road(route_coor: TPI, lat_end: float, lon_end: float) -> Dict[str, Union[None, str, dict]]:
+async def summing_result_road(
+    route_coor: TPI, lat_end: float, lon_end: float
+) -> Dict[str, Union[None, str, dict]]:
     """
     collect information from external api;
     :param lon_end: longitude end point route;
@@ -16,13 +18,19 @@ async def summing_result_road(route_coor: TPI, lat_end: float, lon_end: float) -
     :return: SummingData weather, recommended message and traffic jams status; someone can be None
     """
     message = None
-    weather = await processed_data_weather(route_coor.lat_start, route_coor.lon_start)
+    weather = await processed_data_weather(
+        route_coor.lat_start, route_coor.lon_start
+    )
     if isinstance(weather, dict):
         weather.pop("_id", None)
-        message = await response_openai(weather, route_coor.lat_start, route_coor.lon_start)
+        message = await response_openai(
+            weather, route_coor.lat_start, route_coor.lon_start
+        )
         if isinstance(message, dict):
             message.pop("_id", None)
-    traffic_jams_status = await status_road_speed(route_coor.lat_start, route_coor.lon_start, lat_end, lon_end)
+    traffic_jams_status = await status_road_speed(
+        route_coor.lat_start, route_coor.lon_start, lat_end, lon_end
+    )
     if traffic_jams_status:
         traffic_jams_status.pop("_id", None)
 
